@@ -6,38 +6,43 @@ db = SQLAlchemy()
 class TopicName(db.Model):
     __tablename__ = 'TopicName'
     topic_name = db.Column(db.String(), primary_key=True)
+    partition_id = db.Coumn(db.String(), primary_key=True)
 
-    def __init__(self, topic_name):
+    def __init__(self, topic_name, partition_id):
         self.topic_name = topic_name
+        self.partition_id = partition_id
 
     def __repr__(self):
-        return f"{self.topic_name}"
+        return f"{self.topic_name} {self.partition_id}"
 
     @staticmethod
     def ListTopics():
-        return [topic.topic_name for topic in TopicName.query.all()]
+        return [(topic.topic_name, topic.partition_id) for topic in TopicName.query.all()]
 
     @staticmethod
-    def CreateTopic(topic_name):
-        topic = TopicName(topic_name)
+    def CreateTopic(topic_name, partition_id):
+        topic = TopicName(topic_name, partition_id)
         db.session.add(topic)
         db.session.commit()
 
     @staticmethod
-    def CheckTopic(topic_name):
-        topic = TopicName.query.filter_by(topic_name=topic_name).first()
+    def CheckTopic(topic_name, partition_id):
+        topic = TopicName.query.filter_by(topic_name=topic_name,partition_id=partition_id).first()
         return True if topic else False
-
 
 class TopicMessage(db.Model):
     __tablename__ = 'TopicMessage'
     id = db.Column(db.Integer, primary_key=True)
+    message_id = db.Column(db.Integer)
     topic_name = db.Column(db.String(), db.ForeignKey('TopicName.topic_name'))
+    partition_id = db.Coumn(db.String(), db.ForeignKey('TopicName.partition_id'))
     producer_id = db.Column(db.String())
     message = db.Column(db.String())
 
-    def __init__(self, topic_name, producer_id, message):
+    def __init__(self, message_id, topic_name, partition_id, producer_id, message):
+        self.message_id = message_id
         self.topic_name = topic_name
+        self.partition_id = partition_id
         self.producer_id = producer_id
         self.message = message
 
@@ -52,13 +57,13 @@ class TopicMessage(db.Model):
         db.session.commit()
 
     @staticmethod
-    def retrieveMessage(topic_name, offset):
-        left_messages = TopicMessage.getSizeforTopic(topic_name, offset)
+    def retrieveMessage(topic_name, partition_id, message_id):
+        left_messages = TopicMessage.getSizeforTopic(topic_name, partition_id)
 
         if (left_messages <= 0):
             return -1
         data = TopicMessage.query.filter_by(
-            topic_name=topic_name).order_by(TopicMessage.id).offset(offset).first()
+            topic_name=topic_name, partition_id=partition_id, message_id=message_id)
         return data.message
 
     @staticmethod
@@ -133,7 +138,6 @@ class TopicProducer(db.Model):
 
     def __repr__(self):
         return f"{self.producer_id} {self.topic_name}"
-
 
 def return_objects():
     return TopicProducer, TopicMessage, TopicName, TopicOffsets
