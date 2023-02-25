@@ -52,7 +52,7 @@ If partition id is not specified, use round robin to assign partition id.
   - ReadManager.py
   - ManagerModel.py (ORM)
 
-- Partitions
-  - Partition.py (DistQ)
-  - PartitionModel.py (ORM)
-  - PartitionWrapper.py (API)
+- Brokers
+  - Broker.py (DistQ)
+  - BrokerModel.py (ORM)
+  - BrokerWrapper.py (API)

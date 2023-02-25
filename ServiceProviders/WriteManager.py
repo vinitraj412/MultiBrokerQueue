@@ -11,7 +11,7 @@ class WriteManager:
     # functions:
 
     # send_beat() {regulary sends beat to load balanacer, other managers using separate thread}
-
+    # recv_beat() {from brokers}
     # create_topic(topic_name)
     # size(topic_name, partition_id = None)
     # register_producer(topic_name, parition_id = None) -> success ack

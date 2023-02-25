@@ -1,12 +1,14 @@
 # TODO: Implement Flask Interface \
 from flask import Flask, request
-from Partition import LoggingQueue
+from Broker import LoggingQueue
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from PartitionModels import db, TopicName
+from BrokerModels import db, TopicName
 
 import json
 import uuid
+import argparse
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgrespassword@127.0.0.1:5432/flasksql"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -14,7 +16,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 migrate = Migrate(app, db)
 
-loggingQueue = LoggingQueue()
+broker = LoggingQueue()
 
 # TODO : Add database schemas
 
@@ -25,19 +27,20 @@ def hello_world():
 @app.route("/topics", methods=["POST", "GET"])
 def topics():
 	print(request.method)
-	# print(loggingQueue.__dict__)
+	# print(broker.__dict__)
 	# return "hi"
 	if request.method == "POST":
 		dict = request.get_json()
-		topic = dict['topic_name']
+		topic_name = dict['topic_name']
+		partition_id = dict['partition_id']
 		response = {}
-		status = loggingQueue.create_topic(topic)
+		status = broker.create_topic(topic_name, partition_id)
 		if status == 1:
 			response["status"] = "Success"
-			response["message"] = f"Topic {topic} created successfully!"
+			response["message"] = f"Topic {topic_name} with partition {partition_id} created successfully!"
 		else:
 			response["status"] = "Failure"
-			response["message"] = f"Topic {topic} already exists!"
+			response["message"] = f"Topic {topic_name} with partition {partition_id} already exists!"
 		
 		return response
 		# print(dict['topic_name'])
@@ -47,45 +50,7 @@ def topics():
 	
 	else:
 		# TODO : Return topic list
-		return {"topics" : loggingQueue.list_topics()}
-
-@app.route("/consumer/register", methods=["POST"])
-def register_consumer():
-	dict = request.get_json()	
-	print(dict['topic'])
-	topic = dict['topic']
-	
-	status = loggingQueue.register_consumer(topic)
-	response=  {}
-	if status == -1:
-		response["status"] = "Failure"
-		response["message"] = f"Topic {topic} doesn't exist!"
-	else:
-		response["status"] = "Success"
-		response["consumer_id"] = status
-	return response
-	# if topic exists send consumer id
-	# return {"status" : "success",
-	#         "consumer_id" : 1234}
-	# else return error
-	# return {"status"  : "failure",
-	# 		  "message" : "topic not found"}
-
-@app.route("/producer/register", methods=["POST"])
-def register_producer():
-	dict = request.get_json()
-	print(dict['topic'])
-	topic = dict['topic']
-	
-	status = loggingQueue.register_producer(topic)
-	response=  {}
-	response["status"] = "Success"
-	response["producer_id"] = status
-	return response
-	# else return error
-	# return {"status"  : "failure",
-	# 		  "message" : "topic not found"}
-
+		return {"topics" : broker.list_topics()}
 
 @app.route("/producer/produce", methods=["POST"])
 def enque():
@@ -95,7 +60,7 @@ def enque():
 	message = dict['message']
 
 	
-	status = loggingQueue.enqueue(topic_name=topic, producer_id=producer_id, message=message)
+	status = broker.enqueue(topic_name=topic, producer_id=producer_id, message=message)
 	response = {}
 
 	if status == 1:
@@ -118,7 +83,7 @@ def dequeue():
 	topic = (dict['topic'])
 	consumer_id = uuid.UUID(dict['consumer_id'])
 	# if topic exists send consumer id
-	status = loggingQueue.dequeue(topic_name=topic, consumer_id=consumer_id)
+	status = broker.dequeue(topic_name=topic, consumer_id=consumer_id)
 	response = {}
 
 	if isinstance(status, str) :
@@ -144,7 +109,7 @@ def size():
 	topic = (dict['topic'])
 	consumer_id = uuid.UUID(dict['consumer_id'])
 
-	status = loggingQueue.size(topic_name= topic, consumer_id= consumer_id)
+	status = broker.size(topic_name= topic, consumer_id= consumer_id)
 	response = {}
 
 	if status >=0 :
@@ -158,14 +123,33 @@ def size():
 			response["message"] = f"Consumer {consumer_id} is not registered for topic {topic}."
 
 	return response
-	# if topic exists send consumer id
-	# return {"status" : "success"}
-	# else return error
-	# return {"status"  : "failure",
-	# 		  "message" : "topic not found"}
+
+
+def register_broker(manager_ip, manager_port) -> str:
+	# 1. Check if broker exists
+	# 2. If not, register broker
+	pass
+
+def cmdline_args():
+	# create parser
+	parser = argparse.ArgumentParser()
+
+	parser.add_argument("-i", "--ip", help="ip address", type=str, default="127.0.0.1")
+	parser.add_argument("-p", "--port", help="port number", type=int, default=8080)
+
+	parser.add_argument("-mi", "--manager_ip", help="manager ip address", type=str)
+	parser.add_argument("-mp", "--manager_port", help="manager port number", type=int)
+
+	return parser.parse_args()
 
 if __name__ == '__main__':
-	# global loggingQueue
+	args = cmdline_args()
+
+	# global broker
 	with app.app_context():
 		db.create_all() # <--- create db object.
-	app.run(debug=True)
+	
+	app.run(debug=True, port = args.port)
+	register_broker(args.manager_ip, args.manager_port)
+
+	# TODO: create a thread that periodically sends heartbeat to manager
