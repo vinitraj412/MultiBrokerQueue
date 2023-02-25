@@ -4,14 +4,19 @@ db = SQLAlchemy()
 
 # Table : Brokers (maps the ip/port of each broker)
 # [broker_id, endpoint, last_beat_timestamp]
+class BrokerMetadata(db.Model):
+    pass
 
 # Table : Managers (maps the ip/port of other managers)
 # [broker_id, endpoint, last_beat_timestamp]
+class ManagerMetadata(db.Model):
+    pass
 
 # Table : Partitions (which broker has a particular partition)
 # used in round_robin(or random) selection
 # [topic_name, partition_id, broker_id]
-
+class PartitionMetadata(db.Model):
+    pass
 
 # Table : Messages (used for finding which broker has a certain message with an offset)
 # [topic_name, id(increasing int), broker_id, partition_id]
