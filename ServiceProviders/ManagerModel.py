@@ -33,7 +33,15 @@ class ManagerMessageView(db.Model):
     def getBrokerID(targetTopic, targetPartitionId,targetOffset):
         return ManagerMessageView.query.filter_by(topic_name=targetTopic, partition_id = targetPartitionId)[targetOffset].broker_id
     
-
+    @staticmethod
+    def addMessageMetadata(topic_name,partition_id, broker_id):
+        ## check topic name????
+        if not BrokerMetadata.checkBroker(): ## check if broker still up
+            raise Exception("Broker down")
+        
+        message_entry=ManagerMessageView(topic_name,partition_id,broker_id)
+        db.session.add(message_entry)
+        db.session.commit()
 
 
 # Table : Offsets(self explanatory)  
