@@ -11,7 +11,7 @@ db = SQLAlchemy()
 class BrokerMetadata(db.Model):
     __tablename__ = 'BrokerMetadata'
 
-    broker_id = db.Column(db.Integer, primary_key=True)
+    broker_id = db.Column(db.Integer(), primary_key=True)
     endpoint = db.Column(db.String(),unique=True)
     last_beat_timestamp = db.Column(db.DateTime,default=datetime.utcnow)
     status = db.Column(db.Boolean, default=True)
@@ -25,7 +25,7 @@ class BrokerMetadata(db.Model):
 
     @staticmethod
     def updateTimeStamp(endpoint):
-        broker = BrokerMetadata.query.filter_by(endpoint=endpoint).first
+        broker = BrokerMetadata.query.filter_by(endpoint=endpoint).first()
         broker.last_beat_timestamp = datetime.utcnow()
         db.session.commit()
 
@@ -74,8 +74,8 @@ class PartitionMetadata(db.Model):
         return partition_id
     
     @staticmethod
-    def exist(topic_name, partition_id):
-        if PartitionMetadata.query.filter_by(topic_name=topic_name, partition_id=partition_id).count() > 0:
+    def exist(topic_name, partition_offset):
+        if PartitionMetadata.query.filter_by(topic_name=topic_name).count() > partition_offset:
             return True
         else:
             return False
@@ -89,6 +89,7 @@ class PartitionMetadata(db.Model):
         query = [topic.partition_id for topic in PartitionMetadata.query.filter_by(topic_name=topic_name).all()]
         return sorted(list(set(query)))
 
+    @staticmethod
     def getPartition(topic_name, offset):
         return PartitionMetadata.query.filter_by(topic_name=topic_name)[offset].partition_id
 
@@ -199,7 +200,8 @@ class ProducerMetadata(db.model):
         db.session.add(entry)
         db.session.commit()
 
-
+# def return_objects():
+#     return BrokerMetadata, ManagerMetadata, PartitionMetadata, ManagerMessageView, ConsumerMetadata
 
 ## Write Ahead Logging (TODO Later)
 # Table : Transactions

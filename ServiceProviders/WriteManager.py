@@ -54,7 +54,7 @@ class WriteManager:
     def round_robin_partition(topic_name, producer_id):
         partition_offset = ProducerMetadata.query.filter_by(producer_id=producer_id).first().partition_offset
         num_partitions = PartitionMetadata.query.filter_by(topic_name=topic_name).count()
-        partition_offset = (partition + 1) % num_partitions
+        partition_offset = (partition_offset + 1) % num_partitions
 
         partition = PartitionMetadata.getPartition(topic_name, partition_offset)
 
@@ -64,24 +64,17 @@ class WriteManager:
     def list_partitions(topic_name):
         return PartitionMetadata.listPartitions(topic_name)
 
-    def register_producer(topic_name, partition_id = None):
+    def register_producer(topic_name):
         # check for existence of topic_name and partition_id
 
-        if partition_id is None:
-        # choose the first topic partition
-            partitions = WriteManager.list_partitions(topic_name)
+        partition_offset = 0
 
-            if(len(partitions) == 0):
-                return -2
-            partition_id = 0
-
-
-        if not PartitionMetadata.exist(topic_name, partition_id):
+        if not PartitionMetadata.exist(topic_name, partition_offset):
             return -1
             # Topic.createTopic(topic_name, partition_id,)
           
         producer_id = str(uuid.uuid4())
-        ProducerMetadata.registerProducer(producer_id, topic_name, partition_id)
+        ProducerMetadata.registerProducer(producer_id, topic_name, partition_offset)
 
         return producer_id
 
@@ -111,7 +104,7 @@ class WriteManager:
         if partition_offset == -1:
             partition_offset = ProducerMetadata.query.filter_by(producer_id=producer_id).first().partition_offset
             num_partitions = PartitionMetadata.query.filter_by(topic_name=topic_name).count()
-            partition_offset = (partition + 1) % num_partitions
+            partition_offset = (partition_offset + 1) % num_partitions
 
         partition = PartitionMetadata.getPartition(topic_name, partition_offset)
         message = ManagerMessageView(producer_id, topic_name, partition, message)
