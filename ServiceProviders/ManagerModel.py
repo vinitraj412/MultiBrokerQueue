@@ -9,7 +9,7 @@ db = SQLAlchemy()
 
 # service registry
 class BrokerMetadata(db.Model):
-    __tablename__ = 'brokers'
+    __tablename__ = 'BrokerMetadata'
 
     broker_id = db.Column(db.Integer, primary_key=True)
     endpoint = db.Column(db.String(),unique=True)
@@ -56,6 +56,7 @@ class ManagerMetadata(db.Model):
 # used in round_robin(or random) selection
 # [topic_name, partition_id, broker_id]
 class PartitionMetadata(db.Model):
+    __tablename__ = 'PartitionMetadata'
     topic_name = db.Column(db.String(),)
     partition_id = db.Column(db.Integer(), primary_key=True)
     broker_id = db.Column(db.Integer(), db.ForeignKey('BrokerMetadata.broker_id'))
@@ -108,9 +109,12 @@ class ManagerMessageView(db.Model):
         self.partition_id=partition_id
 
     @staticmethod
-    def getBrokerID(targetTopic, targetPartitionId,targetOffset):
+    def getBrokerID(targetTopic, targetPartitionId, targetOffset):
         return ManagerMessageView.query.filter_by(topic_name=targetTopic, partition_id = targetPartitionId)[targetOffset].broker_id
     
+    def getBrokerIDGlobalOffset(targetTopic, targetOffset):
+        entry=ManagerMessageView.query.filter_by(topic_name=targetTopic)[targetOffset]
+        return entry.broker_id,entry.partition_id
     @staticmethod
     def addMessageMetadata(topic_name,partition_id, broker_id):
         ## check topic name????
@@ -142,11 +146,44 @@ class ManagerMessageView(db.Model):
 
 # Table : Offsets(self explanatory)  
 # [Consumer_id, topic_name, partition_id(null if subscribed to entire topic), offset]
+class ConsumerMetadata(db.Model):
+    __tablename__ = 'ConsumerMetadata'
+    consumer_id=db.Column(db.String(),primary_key=True)
+    topic_name=db.Column(db.String())
+    parition_id=db.Column(db.Integer(),db.ForeignKey('PartitionMetadata.partition_id'))
+    offset=db.Column(db.Integer())
+
+    def __init__(self,consumer,topic_name,partition_id,offset):
+        self.consumer_id=consumer
+        self.topic_name=topic_name
+        self.parition_id=partition_id
+        self.offset=offset
+    
+    @staticmethod
+    def registerConsumer(consumer_id, topic_name, partition_id):
+        entry=ConsumerMetadata(consumer_id,topic_name,partition_id,0)
+        db.session.add(entry)
+        db.session.commit()
+    
+    @staticmethod
+    def getPartitionId(topic_name,consumer_id):
+        return ConsumerMetadata.query.filter_by(topic_name=topic_name,consumer_id=consumer_id).first().partition_id
+    
+    @staticmethod
+    def getOffset(topic_name,consumer_id):
+        return ConsumerMetadata.query.filter_by(topic_name=topic_name,consumer_id=consumer_id).first().offset
+    
+    @staticmethod
+    def incrementOffset(topic_name,consumer_id):
+        offset = ConsumerMetadata.getOffset(topic_name,consumer_id)
+        ConsumerMetadata.query.filter_by(topic_name=topic_name,consumer_id=consumer_id).update({ConsumerMetadata.offset: offset + 1})
+        db.session.commit()
+
 
 # Table : Producers
 # [producer_id, topic_name, partition_id(null if publishing to entire topic)]
 class ProducerMetadata(db.model):
-    
+    __tablename__ = 'ProducerMetadata'
     producer_id = db.Column(db.String(), primary_key=True)
     topic_name = db.Column(db.String())
     partition_offset = db.Column(db.Integer())
