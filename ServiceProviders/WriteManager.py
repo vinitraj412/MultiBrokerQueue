@@ -40,7 +40,15 @@ class WriteManager:
 
 
     # def
-        
+    # register_producer(topic_name, parition_id = None) -> success ack
+    def round_robin_partition(topic_name, producer_id):
+        partition_offset = ProducerMetadata.query.filter_by(producer_id=producer_id).first().partition_offset
+        num_partitions = PartitionMetadata.query.filter_by(topic_name=topic_name).count()
+        partition_offset = (partition_offset + 1) % num_partitions
+
+        partition = PartitionMetadata.getPartition(topic_name, partition_offset)
+
+        return partition   
 
     # size(topic_name, partition_id = None)
     def size(topic_name, partition_id = None):
@@ -50,15 +58,7 @@ class WriteManager:
             return ManagerMessageView.query.filter_by(topic_name=topic_name).count()
     # this will use god table, query table then filter then count
 
-    # register_producer(topic_name, parition_id = None) -> success ack
-    def round_robin_partition(topic_name, producer_id):
-        partition_offset = ProducerMetadata.query.filter_by(producer_id=producer_id).first().partition_offset
-        num_partitions = PartitionMetadata.query.filter_by(topic_name=topic_name).count()
-        partition_offset = (partition_offset + 1) % num_partitions
-
-        partition = PartitionMetadata.getPartition(topic_name, partition_offset)
-
-        return partition        
+         
 
     # list_partitions(topic_name)
     def list_partitions(topic_name):
