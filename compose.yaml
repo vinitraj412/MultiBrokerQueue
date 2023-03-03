@@ -1,29 +1,33 @@
 version: '3.9'
 services:
-    gateway:
+    reverse_proxy:
         image: nginx
-        container_name: gateway
+        container_name: reverse_proxy
         volumes:
-            - # fill
+            - ./nginx.conf:/etc/nginx/nginx.conf
         ports:
             - 8080:80
         deploy:
         networks:       
             - custom
+        depends_on:
+            - read_manager_one
+            - read_manager_two
     
     write_manager:
         image: MultiBrokerQueue/write_manager
         build: 
-        container_name: primary
-        hostname: primary
+        container_name: write_manager
+        hostname: write_manager
         deploy: # fill
         networks:       
             - custom
         entrypoint: python
         command: 
 
-    read_manager:
+    read_manager_one:
         image: MultiBrokerQueue/read_manager
+        container_name: read_manager_one
         build: # fill
         deploy:
             replicas: 1
@@ -31,7 +35,27 @@ services:
             - custom
         entrypoint: python
         command: # fill
+        hostname: read_manager_one
+        depends_on:
+            - main_db_one
+        environment:
+            - DB_NAME=main_db_one
 
+    read_manager_two:
+        image: MultiBrokerQueue/read_manager
+        container_name: read_manager_two
+        build: # fill
+        deploy:
+            replicas: 1
+        networks:       
+            - custom
+        entrypoint: python
+        command: # fill
+        hostname: read_manager_two
+        depends_on:
+            - main_db_one
+        environment:
+            - DB_NAME=main_db_one
     
     broker_one:
         image: MultiBrokerQueue/broker
@@ -78,16 +102,29 @@ services:
         environment:
             - DB_NAME=db_three
 
-    main_db: 
+    main_db_one: 
         image: postgres:13
-        container_name: main_db
+        container_name: main_db_one
         restart: always
         volumes:
                 - # fill
-        hostname: main_db
+        hostname: main_db_one
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
-                - 'POSTGRES_DB=main_db'
+                - 'POSTGRES_DB=main_db_one'
+        networks:       
+            - custom
+
+    main_db_two: 
+        image: postgres:13
+        container_name: main_db_two
+        restart: always
+        volumes:
+                - # fill
+        hostname: main_db_two
+        environment:
+                - 'POSTGRES_PASSWORD=postgres'
+                - 'POSTGRES_DB=main_db_two'
         networks:       
             - custom
 
