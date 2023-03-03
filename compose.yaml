@@ -37,8 +37,8 @@ services:
         image: MultiBrokerQueue/broker
         build: 
         container_name: broker_one
-        volumes:
-            - # fill
+        # volumes:
+        #     - # fill
         networks:       
             - custom
         restart: always
