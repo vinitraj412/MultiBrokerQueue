@@ -1,0 +1,133 @@
+version: '3.9'
+services:
+    gateway:
+        image: nginx
+        container_name: gateway
+        volumes:
+            - # fill
+        ports:
+            - 8080:80
+        deploy:
+        networks:       
+            - custom
+    
+    write_manager:
+        image: MultiBrokerQueue/write_manager
+        build: 
+        container_name: primary
+        hostname: primary
+        deploy: # fill
+        networks:       
+            - custom
+        entrypoint: python
+        command: 
+
+    read_manager:
+        image: MultiBrokerQueue/read_manager
+        build: # fill
+        deploy:
+            replicas: 1
+        networks:       
+            - custom
+        entrypoint: python
+        command: # fill
+
+    
+    broker_one:
+        image: MultiBrokerQueue/broker
+        build: 
+        container_name: broker_one
+        volumes:
+            - # fill
+        networks:       
+            - custom
+        restart: always
+        hostname: broker_one
+        depends_on:
+            - db_one
+        environment:
+            - DB_NAME=db_one
+        entrypoint: python
+        command: # fill
+
+    broker_two: 
+        image: MultiBrokerQueue/broker
+        build: # fill
+        container_name: broker_two
+        networks:       
+            - custom
+        restart: always
+        hostname: broker_two
+        depends_on:
+            - db_two
+        environment:
+            - DB_NAME=db_two
+        entrypoint: python
+        command: # fill
+    
+    broker_three: 
+        image: MultiBrokerQueue/broker
+        build: ./broker
+        container_name: broker_three
+        networks:       
+            - custom
+        restart: always
+        hostname: broker_three
+        depends_on:
+            - db_three
+        environment:
+            - DB_NAME=db_three
+
+    main_db: 
+        image: postgres:13
+        container_name: main_db
+        restart: always
+        volumes:
+                - # fill
+        hostname: main_db
+        environment:
+                - 'POSTGRES_PASSWORD=postgres'
+                - 'POSTGRES_DB=main_db'
+        networks:       
+            - custom
+
+    db_one:
+        image: postgres:13
+        container_name: db_one
+        restart: always
+        volumes:
+                - # fill
+        hostname: db_one
+        environment:
+                - 'POSTGRES_PASSWORD=postgres'
+                - 'POSTGRES_DB=db_one'
+        networks:       
+            - custom
+        
+    db_two:
+        image: postgres:13
+        container_name: db_two
+        restart: always
+        volumes:
+                - # fill
+        hostname: db_two
+        environment:
+                - 'POSTGRES_PASSWORD=postgres'
+                - 'POSTGRES_DB=db_two'
+        networks:       
+            - custom
+    db_three:
+        image: postgres:13
+        container_name: db_three
+        restart: always
+        volumes:
+                - # fill
+        hostname: db_three
+        environment:
+                - 'POSTGRES_PASSWORD=postgres'
+                - 'POSTGRES_DB=db_three'
+        networks:       
+            - custom
+        
+networks:
+    custom: {}
