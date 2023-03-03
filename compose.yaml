@@ -16,7 +16,7 @@ services:
     
     write_manager:
         image: MultiBrokerQueue/write_manager
-        build: 
+        # build: 
         container_name: write_manager
         hostname: write_manager
         deploy: # fill
@@ -28,13 +28,13 @@ services:
     read_manager_one:
         image: MultiBrokerQueue/read_manager
         container_name: read_manager_one
-        build: # fill
+        # build: # fill
         deploy:
             replicas: 1
         networks:       
             - custom
         entrypoint: python
-        command: # fill
+        command: /ServiceProviders/RMWrapper.py
         hostname: read_manager_one
         depends_on:
             - main_db_one
@@ -44,13 +44,13 @@ services:
     read_manager_two:
         image: MultiBrokerQueue/read_manager
         container_name: read_manager_two
-        build: # fill
+        # build: # fill
         deploy:
             replicas: 1
         networks:       
             - custom
         entrypoint: python
-        command: # fill
+        command: /ServiceProviders/RMWrapper.py
         hostname: read_manager_two
         depends_on:
             - main_db_one
@@ -59,7 +59,7 @@ services:
     
     broker_one:
         image: MultiBrokerQueue/broker
-        build: 
+        build: ./broker
         container_name: broker_one
         # volumes:
         #     - # fill
@@ -72,11 +72,11 @@ services:
         environment:
             - DB_NAME=db_one
         entrypoint: python
-        command: # fill
+        command: ./Brokers/BrokerWrapper.py
 
     broker_two: 
         image: MultiBrokerQueue/broker
-        build: # fill
+        # build: ./broker
         container_name: broker_two
         networks:       
             - custom
@@ -91,7 +91,7 @@ services:
     
     broker_three: 
         image: MultiBrokerQueue/broker
-        build: ./broker
+        # build: ./broker
         container_name: broker_three
         networks:       
             - custom
@@ -107,7 +107,7 @@ services:
         container_name: main_db_one
         restart: always
         volumes:
-                - # fill
+                - ./data:/var/lib/postgresql/data
         hostname: main_db_one
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
@@ -120,7 +120,7 @@ services:
         container_name: main_db_two
         restart: always
         volumes:
-                - # fill
+                - ./data:/var/lib/postgresql/data
         hostname: main_db_two
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
@@ -133,7 +133,7 @@ services:
         container_name: db_one
         restart: always
         volumes:
-                - # fill
+                - ./data:/var/lib/postgresql/data
         hostname: db_one
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
@@ -146,7 +146,7 @@ services:
         container_name: db_two
         restart: always
         volumes:
-                - # fill
+                - ./data:/var/lib/postgresql/data
         hostname: db_two
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
@@ -158,7 +158,7 @@ services:
         container_name: db_three
         restart: always
         volumes:
-                - # fill
+                - ./data:/var/lib/postgresql/data
         hostname: db_three
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
