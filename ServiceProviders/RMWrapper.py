@@ -1,15 +1,14 @@
 # TODO: Implement Flask Interface \
 from flask import Flask, request
-from .ReadManager import ReadManager
-from flask_sqlalchemy import SQLAlchemy
+from ReadManager import ReadManager
 from flask_migrate import Migrate
-from .ManagerModel import db
+from ManagerModel import db
 
 import uuid
 import argparse
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgrespassword@127.0.0.1:5432/flasksql"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@127.0.0.1:5430/readmanager"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -43,9 +42,9 @@ def dequeue():
 	dict = request.get_json()
 	topic = (dict['topic'])
 	consumer_id = uuid.UUID(dict['consumer_id'])
-	
+	partition_id = dict.get('partition_id', None)		
     # if topic exists send consumer id
-	status = ReadManager.dequeue(topic_name=topic, consumer_id=consumer_id)
+	status = ReadManager.dequeue(topic_name=topic, consumer_id=consumer_id, partition_id=partition_id)
 	response = {}
 
     # TODO: check the async io output
@@ -97,12 +96,12 @@ def cmdline_args():
 
 	return parser.parse_args()
 
-if __name__ == '__main__':
-	args = cmdline_args()
+# if __name__ == '__main__':
+	# args = cmdline_args()
 
 	# global broker
-	with app.app_context():
-		db.create_all() # <--- create db object.
+	# with app.app_context():
+		# db.create_all() # <--- create db object.
 	
-	app.run(debug=True, port = args.port)
+	# app.run(debug=True, port = args.port)
 	# TODO: create a thread that periodically sends heartbeat to manager

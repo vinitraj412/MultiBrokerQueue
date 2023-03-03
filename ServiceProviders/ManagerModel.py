@@ -13,12 +13,11 @@ class BrokerMetadata(db.Model):
     __tablename__ = 'BrokerMetadata'
 
     broker_id = db.Column(db.Integer(), primary_key=True)
-    endpoint = db.Column(db.String(),unique=True)
-    last_beat_timestamp = db.Column(db.DateTime,default=datetime.utcnow)
+    endpoint = db.Column(db.String(), unique=True)
+    last_beat_timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.Boolean, default=True)
-    
 
-    def __init__(self,endpoint):
+    def __init__(self, endpoint):
         self.endpoint = endpoint
 
     def __repr__(self) -> str:
@@ -52,6 +51,11 @@ class BrokerMetadata(db.Model):
     def get_active_brokers() -> list:
         return [broker.broker_id for broker in BrokerMetadata.query.filter_by(status=True).all()]
 
+    @staticmethod
+    def getBrokerEndpoint(broker_id: int) -> str:
+        broker = BrokerMetadata.query.filter_by(broker_id=broker_id).first()
+        return broker.endpoint
+
 # Table : Managers (maps the ip/port of other managers)
 # We are supposed to store the details of the manager?
 # This might be used for sending the heartbeat
@@ -64,16 +68,28 @@ class BrokerMetadata(db.Model):
 # Maps the partition (topic_name, partition_id) to the broker_id
 # used in round_robin(or random) selection
 # [topic_name, partition_id, broker_id]
+
+
 class PartitionMetadata(db.Model):
     __tablename__ = 'PartitionMetadata'
-    topic_name = db.Column(db.String(),primary_key=True)
-    partition_id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
+
+    id = db.Column(db.Integer(), primary_key=True)
+    topic_name = db.Column(db.String())
+    partition_id = db.Column(db.Integer())
     broker_id = db.Column(db.Integer(), db.ForeignKey('BrokerMetadata.broker_id'))
-    
+    size = db.Column(db.Integer(), default=0)
+
     def __init__(self, topic_name, broker_id):
         self.topic_name = topic_name
         self.broker_id = broker_id
-    
+        # find max partition_id for this topic and add 1
+        max_part_id = db.session.query(db.func.max(
+            PartitionMetadata.partition_id)).filter_by(topic_name=topic_name).scalar()
+        if max_part_id is None:
+            self.partition_id = 0
+        else:
+            self.partition_id = max_part_id + 1
+
     @staticmethod
     def createPartition(topic_name, broker_id):
         entry = PartitionMetadata(topic_name, broker_id)
@@ -81,131 +97,151 @@ class PartitionMetadata(db.Model):
         db.session.commit()
         partition_id = entry.partition_id
         return partition_id
-    
-    @staticmethod
-    def exist(topic_name, partition_offset):
-        if PartitionMetadata.query.filter_by(topic_name=topic_name).count() > partition_offset:
-            return True
-        else:
-            return False
+
+    # @staticmethod
+    # def exist(topic_name, partition_offset):
+    #     if PartitionMetadata.query.filter_by(topic_name=topic_name).count() > partition_offset:
+    #         return True
+    #     else:
+    #         return False
+
     @staticmethod
     def listTopics():
         query = [partition.topic_name for partition in PartitionMetadata.query.all()]
         return list(set(query))
-    
+
     @staticmethod
     def listPartitions(topic_name):
-        query = [topic.partition_id for topic in PartitionMetadata.query.filter_by(topic_name=topic_name).all()]
+        query = [topic.partition_id for topic in PartitionMetadata.query.filter_by(
+            topic_name=topic_name).all()]
         return sorted(list(set(query)))
 
     @staticmethod
-    def getPartition(topic_name, offset):
-        return PartitionMetadata.query.filter_by(topic_name=topic_name)[offset].partition_id
+    def getPartition(topic_name, partition_id):
+        return PartitionMetadata.query.filter_by(topic_name=topic_name, partition_id=partition_id).first().id
+    
+    @staticmethod
+    def increaseSize(topic_name, partition_id):
+        partition = PartitionMetadata.query.filter_by(topic_name=topic_name, partition_id=partition_id).first()
+        partition.size += 1
+        db.session.commit()
+
+    @staticmethod
+    def getSize(topic_name, partition_id):
+        return PartitionMetadata.query.filter_by(topic_name=topic_name, partition_id=partition_id).first().size
+    
+    @staticmethod
+    def getBrokerID(topic_name, partition_id):
+        return PartitionMetadata.query.filter_by(topic_name=topic_name, partition_id=partition_id).first().broker_id
 
 # Table : Messages (used for finding which broker has a certain message with an offset)
 # [topic_name, id(increasing int), broker_id, partition_id]
 # id is a global counter for all messages
 # This stores the details for all the messages
 # So all the messages regardless of the topic or partition are stored here
-class ManagerMessageView(db.Model):
-    __tablename__ = 'ManagerMessageView'
-    topic_name = db.Column(db.String(),db.ForeignKey('PartitionMetadata.partition_id'))
-    partition_id = db.Column(db.Integer(),db.ForeignKey('PartitionMetadata.partition_id')) # can this be NULL?
-    id = db.Column(db.Integer, primary_key=True)
+# class ManagerMessageView(db.Model):
+#     __tablename__ = 'ManagerMessageView'
+#     topic_name = db.Column(db.String(),db.ForeignKey('PartitionMetadata.partition_id'))
+#     partition_id = db.Column(db.Integer(),db.ForeignKey('PartitionMetadata.partition_id')) # can this be NULL?
+#     id = db.Column(db.Integer, primary_key=True)
 
-    def __init__(self,topic_name,partition_id,broker_id):
-        self.broker_id=broker_id
-        self.topic_name=topic_name
-        self.partition_id=partition_id
+#     def __init__(self,topic_name,partition_id,broker_id):
+#         self.broker_id=broker_id
+#         self.topic_name=topic_name
+#         self.partition_id=partition_id
 
-    @staticmethod
-    def getBrokerID(targetTopic, targetPartitionId, targetOffset):
-        return ManagerMessageView.query.filter_by(topic_name=targetTopic, partition_id = targetPartitionId)[targetOffset].broker_id
-    
-    def getBrokerIDGlobalOffset(targetTopic, targetOffset):
-        # How do we get target offset here? Need randomization!
-        entry=ManagerMessageView.query.filter_by(topic_name=targetTopic)[targetOffset]
-        return entry.broker_id,entry.partition_id
-    
-    @staticmethod
-    def addMessageMetadata(topic_name,partition_id, broker_id):
-        ## check topic name????
+#     @staticmethod
+#     def getBrokerID(targetTopic, targetPartitionId, targetOffset):
+#         return ManagerMessageView.query.filter_by(topic_name=targetTopic, partition_id = targetPartitionId)[targetOffset].broker_id
 
-        ## no need to check since foreign key reference
-        # if not BrokerMetadata.checkBroker(): ## check if broker still up 
-         #     raise Exception("Broker down")
+#     def getBrokerIDGlobalOffset(targetTopic, targetOffset):
+#         # How do we get target offset here? Need randomization!
+#         entry=ManagerMessageView.query.filter_by(topic_name=targetTopic)[targetOffset]
+#         return entry.broker_id,entry.partition_id
 
-        message_entry=ManagerMessageView(topic_name,partition_id,broker_id)
-        try:
-            db.session.add(message_entry)
-            db.session.commit()
-        except:
-            db.session.rollback()
-    
-    @staticmethod
-    def getLeastMessageBroker(topic_name):
-        brokers = set([b.broker_id for b in BrokerMetadata.query.all()])
-        
-        query = ManagerMessageView.query.filter_by(topic_name=topic_name).all()
-        broker_message_load = {b:0 for b in brokers}
-        for q in query:
-            broker_message_load[q] += 1
-        if(len(q) > 0):
-            return min(broker_message_load, key = broker_message_load.get)
-        
-        return -1
+#     @staticmethod
+#     def addMessageMetadata(topic_name,partition_id, broker_id):
+#         ## check topic name????
+
+#         ## no need to check since foreign key reference
+#         # if not BrokerMetadata.checkBroker(): ## check if broker still up
+#          #     raise Exception("Broker down")
+
+#         message_entry=ManagerMessageView(topic_name,partition_id,broker_id)
+#         try:
+#             db.session.add(message_entry)
+#             db.session.commit()
+#         except:
+#             db.session.rollback()
+
+#     @staticmethod
+#     def getLeastMessageBroker(topic_name):
+#         brokers = set([b.broker_id for b in BrokerMetadata.query.all()])
+
+#         query = ManagerMessageView.query.filter_by(topic_name=topic_name).all()
+#         broker_message_load = {b:0 for b in brokers}
+#         for q in query:
+#             broker_message_load[q] += 1
+#         if(len(q) > 0):
+#             return min(broker_message_load, key = broker_message_load.get)
+
+#         return -1
 
 
-# Table : Offsets(self explanatory)  
+# Table : Offsets(self explanatory)
 # [Consumer_id, topic_name, partition_id(null if subscribed to entire topic), offset]
 class ConsumerMetadata(db.Model):
     __tablename__ = 'ConsumerMetadata'
-    consumer_id=db.Column(db.String(),primary_key=True)
-    topic_name=db.Column(db.String())
-    partition_id=db.Column(db.Integer()) # will be none if subscribed to entire topic
-    offset=db.Column(db.Integer()) # will be 
+    consumer_id = db.Column(db.String(), primary_key=True)
+    partition_metadata = db.Column(db.Integer(), db.ForeignKey('PartitionMetadata.id'), primary_key=True)
+    offset = db.Column(db.Integer())  # will be
 
-    def __init__(self,consumer,topic_name,partition_id,offset):
-        self.consumer_id=consumer
-        self.topic_name=topic_name
-        self.partition_id=partition_id
-        self.offset=offset
-    
+    def __init__(self, consumer, topic_name, partition_id, offset):
+        self.consumer_id = consumer
+        self.partition_metadata = PartitionMetadata.getPartition(topic_name, partition_id)
+        self.offset = offset
+
     @staticmethod
     def registerConsumer(consumer_id, topic_name, partition_id):
-        entry=ConsumerMetadata(consumer_id,topic_name,partition_id,0)
+        entry = ConsumerMetadata(consumer_id, topic_name, partition_id, 0)
         db.session.add(entry)
         db.session.commit()
-    
+
     @staticmethod
-    def getPartitionId(topic_name,consumer_id):
-        return ConsumerMetadata.query.filter_by(topic_name=topic_name,consumer_id=consumer_id).first().partition_id
-    
+    def getOffset(topic_name, consumer_id, partition_id):
+        part_id = PartitionMetadata.getPartition(topic_name, partition_id)
+        return ConsumerMetadata.query.filter_by(consumer_id=consumer_id, partition_metadata=part_id).first().offset
+
     @staticmethod
-    def getOffset(topic_name,consumer_id):
-        return ConsumerMetadata.query.filter_by(topic_name=topic_name,consumer_id=consumer_id).first().offset
-    
-    @staticmethod
-    def incrementOffset(topic_name,consumer_id):
-        offset = ConsumerMetadata.getOffset(topic_name,consumer_id)
-        ConsumerMetadata.query.filter_by(topic_name=topic_name,consumer_id=consumer_id).update({ConsumerMetadata.offset: offset + 1})
+    def incrementOffset(consumer_id, topic_name, partition_id):
+        part_id = PartitionMetadata.getPartition(topic_name, partition_id)
+        entry = ConsumerMetadata.query.filter_by(consumer_id=consumer_id, partition_metadata=part_id).first()
+        entry.offset += 1
         db.session.commit()
+
+    @staticmethod
+    def getConsumerCount(topic_name, partition_id):
+        part_id = PartitionMetadata.getPartition(topic_name, partition_id)
+        return ConsumerMetadata.query.filter_by(partition_metadata=part_id).count()
 
 
 # Table : Producers
 # [producer_id, topic_name, partition_id(null if publishing to entire topic)]
-class ProducerMetadata(db.model):
+class ProducerMetadata(db.Model):
     __tablename__ = 'ProducerMetadata'
     producer_id = db.Column(db.String(), primary_key=True)
     topic_name = db.Column(db.String())
 
-    def __init__(self,producer_id, topic_name):
+    def __init__(self, producer_id, topic_name):
         self.producer_id = producer_id
         self.topic_name = topic_name
-    
+
     @staticmethod
     def registerProducer(producer_id, topic_name):
         entry = ProducerMetadata(producer_id, topic_name)
         db.session.add(entry)
         db.session.commit()
-
+    
+    @staticmethod
+    def topic_registered(producer_id, topic_name):
+        return ProducerMetadata.query.filter_by(producer_id=producer_id, topic_name=topic_name).count() > 0

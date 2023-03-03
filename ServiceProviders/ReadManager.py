@@ -1,4 +1,4 @@
-from .ManagerModel import ManagerMessageView, PartitionMetadata, ConsumerMetadata
+from ManagerModel import PartitionMetadata, ConsumerMetadata, BrokerMetadata
 import uuid
 import requests
 from concurrent.futures import ThreadPoolExecutor
@@ -11,61 +11,79 @@ class ReadManager:
 
     # send_beat() {regulary sends beat to load balanacer, other managers using separate thread}
     
-    def send_heartbeat(self,endpoint):
-        requests.post(endpoint,data="")
+    # def send_heartbeat(self,endpoint):
+    #     requests.post(endpoint,data="")
 
-    def beat(self):
-        with ThreadPoolExecutor(len(self.endpoint_list)) as executor:
-            futures = [executor.submit(self.send_heartbeat, endpoint) for endpoint in self.endpoint_list]
+    # def beat(self):
+    #     with ThreadPoolExecutor(len(self.endpoint_list)) as executor:
+    #         futures = [executor.submit(self.send_heartbeat, endpoint) for endpoint in self.endpoint_list]
     
-    # size(topic_name, consumer_id)
-    def size(topic_name, consumer_id):
-        TotalSize = 0
-        partition_id = ConsumerMetadata.getPartitionId(topic_name = topic_name, consumer_id=consumer_id)
-        offset = ConsumerMetadata.getOffset(topic_name=topic_name, consumer_id=consumer_id)
-        if partition_id is not None:
-            TotalSize =  ManagerMessageView.query.filter_by(topic_name=topic_name, partition_id=partition_id).count()
-        else:
-            TotalSize =  ManagerMessageView.query.filter_by(topic_name=topic_name).count()
-        return TotalSize - offset
 
+    def getBalancedPartition(self, topic_name):
+        partitions = self.list_partitions(topic_name)
+        if(len(partitions)==0):
+            return -1
+        # select partition with least number of consumers
+        partition_id = min(partitions,key=lambda x: ConsumerMetadata.getConsumerCount(topic_name,x))
+        return partition_id
+    
+    def getHealthyPartition(self, topic_name, consumer_id):
+        partitions = self.list_partitions(topic_name)
+
+        # select partition with offset < partition size 
+        partitions = [part_id for part_id in partitions 
+                      if ConsumerMetadata.getOffset(topic_name,consumer_id,part_id) < PartitionMetadata.getSize(topic_name,part_id)]
+        if(len(partitions)==0):
+            return -1
+        partition_id = min(partitions,key=lambda x: ConsumerMetadata.getConsumerCount(topic_name,x))
+        return partition_id
     
     # register_consumer(topic_name, parition_id = None) -> success ack
-    def register_consumer(topic_name,partition_id=None):
-        if partition_id is None:
-            partitions=ReadManager.list_partitions(topic_name)
-            if(len(partitions)==0):
-                return -2
-            partition_id=partitions[0]
 
-        if not PartitionMetadata.exit(topic_name,partition_id):
-            return -1
+    def register_consumer(self, topic_name,partition_id=None):
+        if partition_id is None:
+            partition_id = self.getBalancedPartition(topic_name)
+            if partition_id == -1:
+                print("No partitions found")
+                return -1
 
         consumer_id=str(uuid.uuid4())
         ConsumerMetadata.registerConsumer(consumer_id=consumer_id,topic_name=topic_name,partition_id=partition_id)
         return consumer_id
-
-    # dequeue(topic_name, consumer_id) -> message
-    #   {use messages table to find broker}
-    def dequeue(topic_name, consumer_id):
-        #TODO : RETURN status and message
-        # find partition id and offset from ConsumerMetadata 
-        # find broker id using partition id and offset from ManagerMessageView
-        # increment offset
-
-        partition_id = ConsumerMetadata.getPartitionId(topic_name,consumer_id)
-        
+    
+    def size(self,consumer_id,topic_name, partition_id=None):
         if partition_id is None:
-            offset = ConsumerMetadata.getOffset(topic_name,consumer_id)
-            broker_id,partition_id=ManagerMessageView.getBrokerIDGlobalOffset(topic_name,offset)
-        else:
-            offset=ConsumerMetadata.getOffset(topic_name,consumer_id)
-            broker_id=ManagerMessageView.getBrokerID(topic_name,partition_id,offset)
-        
-        ## send async req to broker with broker id 
+            # return size of all partitions
+            partitions = self.list_partitions(topic_name)
+            size = 0
+            for part_id in partitions:
+                size += PartitionMetadata.getSize(topic_name,part_id) - ConsumerMetadata.getOffset(topic_name,consumer_id,part_id)
+            return size
+        return PartitionMetadata.getSize(topic_name,partition_id) - ConsumerMetadata.getOffset(topic_name,consumer_id,partition_id)
 
-        ConsumerMetadata.incrementOffset(topic_name,consumer_id)  
+    def send_request(self, broker_endpoint, topic_name, partition_id, offset):
+        data = {
+            "topic_name": topic_name,
+            "partition_id": partition_id,
+            "offset": offset
+        }
+        response = requests.get(broker_endpoint, data=data)
+        return response.json()
 
+    def dequeue(self, consumer_id, topic_name, partition_id=None):
+        if partition_id is None:
+            partition_id = ReadManager.getHealthyPartition(self,topic_name,consumer_id)
+
+        offset = ConsumerMetadata.getOffset(topic_name,consumer_id,partition_id)
+        broker_id = PartitionMetadata.getBrokerID(topic_name,partition_id,offset)
+
+        broker_endpoint = BrokerMetadata.getBrokerEndpoint(broker_id)
+
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(self.send_request, broker_endpoint, topic_name, partition_id, offset)
+            ConsumerMetadata.incrementOffset(topic_name,consumer_id)  
+
+        return future.result()
         # return output of async req
   
     # list_topics()
@@ -75,11 +93,4 @@ class ReadManager:
     # list_partitions(topic_name)    
     def list_partitions(topic_name):
         return PartitionMetadata.listPartitions(topic_name)
-
-
-    ## Write Ahead Logging (TODO Later)
-    # General Flow : Receive a request -> log the transaction with enough info to restore
-    #                -> interact with broker -> change state of transaction -> sync with other managers
-    #                -> commit changes to DB -> delete trasaction_log
-
 	
