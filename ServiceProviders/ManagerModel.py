@@ -5,6 +5,7 @@ from datetime import datetime
 db = SQLAlchemy()
 
 # Table : Brokers (maps the ip/port of each broker)
+# Here's where we store the details about the brokers
 # [broker_id, endpoint, last_beat_timestamp]
 
 # service registry
@@ -47,18 +48,26 @@ class BrokerMetadata(db.Model):
         broker = BrokerMetadata.query.filter_by(endpoint=endpoint).first()
         return True if (broker is not None and broker.status) else False
 
+    @staticmethod
+    def get_active_brokers() -> list:
+        return [broker.broker_id for broker in BrokerMetadata.query.filter_by(status=True).all()]
+
 # Table : Managers (maps the ip/port of other managers)
+# We are supposed to store the details of the manager?
+# This might be used for sending the heartbeat
 # [broker_id, endpoint, last_beat_timestamp]
-class ManagerMetadata(db.Model):
-    pass
+# This might be done using
+# class ManagerMetadata(db.Model):
+#     pass
 
 # Table : Partitions (which broker has a particular partition)
+# Maps the partition (topic_name, partition_id) to the broker_id
 # used in round_robin(or random) selection
 # [topic_name, partition_id, broker_id]
 class PartitionMetadata(db.Model):
     __tablename__ = 'PartitionMetadata'
-    topic_name = db.Column(db.String(),)
-    partition_id = db.Column(db.Integer(), primary_key=True)
+    topic_name = db.Column(db.String(),primary_key=True)
+    partition_id = db.Column(db.Integer(), primary_key=True, autoincrement=True)
     broker_id = db.Column(db.Integer(), db.ForeignKey('BrokerMetadata.broker_id'))
     
     def __init__(self, topic_name, broker_id):
@@ -96,12 +105,12 @@ class PartitionMetadata(db.Model):
 # Table : Messages (used for finding which broker has a certain message with an offset)
 # [topic_name, id(increasing int), broker_id, partition_id]
 # id is a global counter for all messages
-
+# This stores the details for all the messages
+# So all the messages regardless of the topic or partition are stored here
 class ManagerMessageView(db.Model):
     __tablename__ = 'ManagerMessageView'
-    topic_name = db.Column(db.String(),)
+    topic_name = db.Column(db.String(),db.ForeignKey('PartitionMetadata.partition_id'))
     partition_id = db.Column(db.Integer(),db.ForeignKey('PartitionMetadata.partition_id')) # can this be NULL?
-    broker_id = db.Column(db.Integer(),db.ForeignKey('BrokerMetadata.broker_id'))
     id = db.Column(db.Integer, primary_key=True)
 
     def __init__(self,topic_name,partition_id,broker_id):
@@ -114,16 +123,18 @@ class ManagerMessageView(db.Model):
         return ManagerMessageView.query.filter_by(topic_name=targetTopic, partition_id = targetPartitionId)[targetOffset].broker_id
     
     def getBrokerIDGlobalOffset(targetTopic, targetOffset):
+        # How do we get target offset here? Need randomization!
         entry=ManagerMessageView.query.filter_by(topic_name=targetTopic)[targetOffset]
         return entry.broker_id,entry.partition_id
+    
     @staticmethod
     def addMessageMetadata(topic_name,partition_id, broker_id):
         ## check topic name????
 
         ## no need to check since foreign key reference
         # if not BrokerMetadata.checkBroker(): ## check if broker still up 
-        #     raise Exception("Broker down")
-        
+         #     raise Exception("Broker down")
+
         message_entry=ManagerMessageView(topic_name,partition_id,broker_id)
         try:
             db.session.add(message_entry)
@@ -151,13 +162,13 @@ class ConsumerMetadata(db.Model):
     __tablename__ = 'ConsumerMetadata'
     consumer_id=db.Column(db.String(),primary_key=True)
     topic_name=db.Column(db.String())
-    parition_id=db.Column(db.Integer(),db.ForeignKey('PartitionMetadata.partition_id'))
-    offset=db.Column(db.Integer())
+    partition_id=db.Column(db.Integer()) # will be none if subscribed to entire topic
+    offset=db.Column(db.Integer()) # will be 
 
     def __init__(self,consumer,topic_name,partition_id,offset):
         self.consumer_id=consumer
         self.topic_name=topic_name
-        self.parition_id=partition_id
+        self.partition_id=partition_id
         self.offset=offset
     
     @staticmethod
@@ -187,24 +198,14 @@ class ProducerMetadata(db.model):
     __tablename__ = 'ProducerMetadata'
     producer_id = db.Column(db.String(), primary_key=True)
     topic_name = db.Column(db.String())
-    partition_offset = db.Column(db.Integer())
 
-    def __init__(self,producer_id, topic_name, partition_offset):
+    def __init__(self,producer_id, topic_name):
         self.producer_id = producer_id
         self.topic_name = topic_name
-        self.partition_offset = partition_offset
     
     @staticmethod
-    def registerProducer(producer_id, topic_name, partition_offset=None):
-        entry = ProducerMetadata(producer_id, topic_name, partition_offset)
+    def registerProducer(producer_id, topic_name):
+        entry = ProducerMetadata(producer_id, topic_name)
         db.session.add(entry)
         db.session.commit()
-
-# def return_objects():
-#     return BrokerMetadata, ManagerMetadata, PartitionMetadata, ManagerMessageView, ConsumerMetadata
-
-## Write Ahead Logging (TODO Later)
-# Table : Transactions
-# [suitable schema to store read/write requests, maybe separate tables]
-
 

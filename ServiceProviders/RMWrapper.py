@@ -1,7 +1,6 @@
 # TODO: Implement Flask Interface \
 from flask import Flask, request
 from .ReadManager import ReadManager
-from .WriteManager import WriteManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from .ManagerModel import db
@@ -23,41 +22,26 @@ migrate = Migrate(app, db)
 def hello_world():
 	return "<h1> Write Manager welcomes you!</h1>"
 
-@app.route("/topics", methods=["POST", "GET"])
-def topics():
-	print(request.method)
-
-	if request.method == "POST":
-		dict = request.get_json()
-		topic_name = dict['topic_name']
-		
-		response = {}
-		# TODO: transfer to WriteManagerWrapper
-		partition_id = WriteManager.create_topic(topic_name)
-		if partition_id >=0:
-			response["status"] = "Success"
-			response["message"] = f"Topic {topic_name} with partition id : {partition_id} created successfully!"
-		else:
-			response["status"] = "Failure"
-			response["message"] = f"No brokers available"
-		
-		return response
-		# print(dict['topic_name'])
-		# TODO : Interact with logging queue and return valid response 
-		
-		# return "test", 205
+@app.route("/topics/partitions", methods=["GET"])
+def partitions():
+	dict = request.get_json()
+	topic_name = dict['topic_name']
 	
+	response = {}
+	partitions = ReadManager.list_partitions(topic_name)
+	if partitions is not None:
+		response["status"] = "Success"
+		response["partitions"] = partitions
 	else:
-		# TODO : Return topic list
-		return {"topics" : ReadManager.list_topics()}
-
+		response["status"] = "Failure"
+		response["message"] = f"Topic {topic_name} does not exist."
+	
+	return response
 
 @app.route("/consumer/consume", methods=["GET"])
 def dequeue():
 	dict = request.get_json()
 	topic = (dict['topic'])
-	# partition_id = dict.get('partition_id', None)
-	
 	consumer_id = uuid.UUID(dict['consumer_id'])
 	
     # if topic exists send consumer id
@@ -65,7 +49,7 @@ def dequeue():
 	response = {}
 
     # TODO: check the async io output
-	if isinstance(status, str) :
+	if isinstance(status, str):
 		response["status"] = "Success"
 		response["message"] = status
 	else:
@@ -101,12 +85,6 @@ def size():
 
 	return response
 
-
-def register_broker(manager_ip, manager_port) -> str:
-	# 1. Check if broker exists
-	# 2. If not, register broker
-	pass
-
 def cmdline_args():
 	# create parser
 	parser = argparse.ArgumentParser()
@@ -127,6 +105,4 @@ if __name__ == '__main__':
 		db.create_all() # <--- create db object.
 	
 	app.run(debug=True, port = args.port)
-	register_broker(args.manager_ip, args.manager_port)
-
 	# TODO: create a thread that periodically sends heartbeat to manager

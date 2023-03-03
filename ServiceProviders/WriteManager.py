@@ -2,7 +2,7 @@
 from .ManagerModel import ManagerMessageView, BrokerMetadata, ProducerMetadata, PartitionMetadata
 import uuid
 import requests
-
+from typing import List
 
 
 class WriteManager:
@@ -19,25 +19,24 @@ class WriteManager:
     # def create_topic(topic_name): may be Partion is also needed
     
     @staticmethod
-    def create_topic(topic_name):
-        # choose a broker, 
-        
-        
-        # choice 1
-        # with least number of messages
-        # create a partition in that broker
-        
-        # select broker_id, count(message_id) from ManagerMessageView where topic_name = topic_name 
-        # group by broker_id order by count(message_id) 
-        broker_id = ManagerMessageView.getLeastMessageBroker(topic_name)
-        if broker_id < 0:
-            return -1
-        partition_id = PartitionMetadata.createPartition(topic_name, broker_id)
+    def create_topic(topic_name: str) -> List[int]:
+        """
+        Create a topic with the given name.
+        We create partitions in all active brokers on demand 
+        Args:
+            topic_name (str): Name of the topic to be created
+        Returns:
+            int: 0 if topic is created successfully, -1 otherwise
+        """
+        broker_ids = BrokerMetadata.get_active_brokers()
+        partition_ids = []
+        for broker_id in broker_ids:
+            partition_id = PartitionMetadata.createPartition(topic_name, broker_id)
+            partition_ids.append(partition_id)
 
-        return partition_id
-        # choice 2
-        # with minimum number of partitions of the given topic_name
+        return partition_ids
 
+    
 
     # def
     # register_producer(topic_name, parition_id = None) -> success ack
@@ -63,6 +62,7 @@ class WriteManager:
     # list_partitions(topic_name)
     def list_partitions(topic_name):
         return PartitionMetadata.listPartitions(topic_name)
+    # returns partitioned list 
 
     def register_producer(topic_name):
         # check for existence of topic_name and partition_id
@@ -81,6 +81,7 @@ class WriteManager:
     # register_broker(broker_id) -> broker_id
     #   {broker gives its broker_id if it restarts after failure, else supply broker_id}
     def register_broker(endpoint):
+        # todo: when adding a broker get it in sync with current topics and create partitions for it.
         try:
             broker_id = BrokerMetadata.createBroker(endpoint)
             print("Created Broker: {}",broker_id)

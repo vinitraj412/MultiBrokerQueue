@@ -18,12 +18,17 @@ class ReadManager:
         with ThreadPoolExecutor(len(self.endpoint_list)) as executor:
             futures = [executor.submit(self.send_heartbeat, endpoint) for endpoint in self.endpoint_list]
     
-    # size(topic_name, partition_id = None)
-    def size(topic_name, partition_id = None):
+    # size(topic_name, consumer_id)
+    def size(topic_name, consumer_id):
+        TotalSize = 0
+        partition_id = ConsumerMetadata.getPartitionId(topic_name = topic_name, consumer_id=consumer_id)
+        offset = ConsumerMetadata.getOffset(topic_name=topic_name, consumer_id=consumer_id)
         if partition_id is not None:
-            return ManagerMessageView.query.filter_by(topic_name=topic_name, partition_id=partition_id).count()
+            TotalSize =  ManagerMessageView.query.filter_by(topic_name=topic_name, partition_id=partition_id).count()
         else:
-            return ManagerMessageView.query.filter_by(topic_name=topic_name).count()
+            TotalSize =  ManagerMessageView.query.filter_by(topic_name=topic_name).count()
+        return TotalSize - offset
+
     
     # register_consumer(topic_name, parition_id = None) -> success ack
     def register_consumer(topic_name,partition_id=None):
@@ -43,19 +48,22 @@ class ReadManager:
     # dequeue(topic_name, consumer_id) -> message
     #   {use messages table to find broker}
     def dequeue(topic_name, consumer_id):
+        #TODO : RETURN status and message
         # find partition id and offset from ConsumerMetadata 
         # find broker id using partition id and offset from ManagerMessageView
         # increment offset
 
-        partition_id=ConsumerMetadata.getPartitionId(topic_name,consumer_id)
+        partition_id = ConsumerMetadata.getPartitionId(topic_name,consumer_id)
+        
         if partition_id is None:
-            ## if partition id is none, get the offset-th message from the global view  
+            offset = ConsumerMetadata.getOffset(topic_name,consumer_id)
             broker_id,partition_id=ManagerMessageView.getBrokerIDGlobalOffset(topic_name,offset)
         else:
-           offset=ConsumerMetadata.getOffset(topic_name,consumer_id)
-           broker_id=ManagerMessageView.getBrokerID(topic_name,partition_id,offset)
+            offset=ConsumerMetadata.getOffset(topic_name,consumer_id)
+            broker_id=ManagerMessageView.getBrokerID(topic_name,partition_id,offset)
         
         ## send async req to broker with broker id 
+
         ConsumerMetadata.incrementOffset(topic_name,consumer_id)  
 
         # return output of async req

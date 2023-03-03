@@ -59,7 +59,7 @@ class TopicMessage(db.Model):
     message_id = db.Column(db.Integer)
     topic_name = db.Column(db.String(), db.ForeignKey('TopicName.topic_name'))
     partition_id = db.Coumn(db.String(), db.ForeignKey('TopicName.partition_id'))
-    producer_id = db.Column(db.String())
+    producer_id = db.Column(db.String())    # is this required?
     message = db.Column(db.String())
 
     def __init__(self, message_id, topic_name, partition_id, producer_id, message):
