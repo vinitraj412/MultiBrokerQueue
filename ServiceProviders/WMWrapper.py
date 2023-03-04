@@ -1,15 +1,15 @@
 # TODO: Implement Flask Interface \
 from flask import Flask, request
-from .WriteManager import WriteManager
+from WriteManager import WriteManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-from .ManagerModel import db
+from ManagerModel import db
 
 import uuid
 import argparse
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgrespassword@127.0.0.1:5432/flasksql"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@127.0.0.1:5430/postgres"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -17,7 +17,6 @@ migrate = Migrate(app, db)
 
 
 # TODO : Add database schemas
-
 @app.route('/')
 def hello_world():
 	return "<h1> Write Manager welcomes you!</h1>"
@@ -28,7 +27,7 @@ def topics():
 	if request.method == "POST":
 		dict = request.get_json()
 		topic_name = dict['topic_name']
-		
+			
 		response = {}
 		partition_ids = WriteManager.create_topic(topic_name)
 		if len(partition_ids) >=0:

@@ -5,13 +5,17 @@ import uuid
 from typing import Dict, List, Tuple, Set
 from concurrent.futures import ThreadPoolExecutor
 from BrokerModels import db, TopicName, TopicMessage
-
+import requests
 # TODO: define enum for success and failure codes
 
 
 class LoggingQueue:
     def __init__(self):
         pass
+
+    def heartbeat(self, ip: str, port: int) -> None:
+        data = {"ip": ip, "port": port}
+        requests  
 
     def create_topic(self, topic_name: str, partition_id) -> None:
         if not TopicName.CheckTopic(topic_name=topic_name, partition_id=partition_id):

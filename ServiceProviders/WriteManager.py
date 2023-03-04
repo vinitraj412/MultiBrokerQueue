@@ -1,5 +1,5 @@
 # import tea, coffee whatever
-from .ManagerModel import BrokerMetadata, ProducerMetadata, PartitionMetadata, ConsumerMetadata
+from ManagerModel import BrokerMetadata, ProducerMetadata, PartitionMetadata, ConsumerMetadata
 import uuid
 import requests
 from typing import List
