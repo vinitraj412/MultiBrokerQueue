@@ -6,6 +6,7 @@ from typing import Dict, List, Tuple, Set
 from concurrent.futures import ThreadPoolExecutor
 from BrokerModels import db, TopicName, TopicMessage
 import requests
+from time import sleep
 # TODO: define enum for success and failure codes
 
 
@@ -13,9 +14,20 @@ class LoggingQueue:
     def __init__(self):
         pass
 
-    def heartbeat(self, ip: str, port: int) -> None:
-        data = {"ip": ip, "port": port}
-        requests  
+    def heartbeat(self, ip: str, port: int, broker_id) -> None:
+        data = {"broker_id": broker_id}
+        send_url = f"http://{ip}:{port}/broker/receive_beat"
+        
+        while True:
+            try:
+                r = requests.post(send_url, json=data)
+                # print("sending beat")
+                r.raise_for_status()
+            except requests.exceptions.HTTPError as errh:
+                print("Http Error:", errh)
+            except requests.exceptions.ConnectionError as errc:
+                print("Error Connecting:", errc)
+            sleep(3)
 
     def create_topic(self, topic_name: str, partition_id) -> None:
         if not TopicName.CheckTopic(topic_name=topic_name, partition_id=partition_id):

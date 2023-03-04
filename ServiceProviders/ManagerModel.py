@@ -24,8 +24,8 @@ class BrokerMetadata(db.Model):
         return "<Broker %r>" % self.endpoint
 
     @staticmethod
-    def updateTimeStamp(endpoint):
-        broker = BrokerMetadata.query.filter_by(endpoint=endpoint).first()
+    def updateTimeStamp(broker_id):
+        broker = BrokerMetadata.query.filter_by(broker_id=broker_id).first()
         broker.last_beat_timestamp = datetime.utcnow()
         db.session.commit()
 
@@ -55,6 +55,11 @@ class BrokerMetadata(db.Model):
     def getBrokerEndpoint(broker_id: int) -> str:
         broker = BrokerMetadata.query.filter_by(broker_id=broker_id).first()
         return broker.endpoint
+
+    @staticmethod
+    def getBrokerId(endpoint) -> int:
+        broker = BrokerMetadata.query.filter_by(endpoint=endpoint).first()
+        return broker.broker_id if broker else -1
 
 # Table : Managers (maps the ip/port of other managers)
 # We are supposed to store the details of the manager?
@@ -245,3 +250,7 @@ class ProducerMetadata(db.Model):
     @staticmethod
     def topic_registered(producer_id, topic_name):
         return ProducerMetadata.query.filter_by(producer_id=producer_id, topic_name=topic_name).count() > 0
+    
+    @staticmethod
+    def getTopic(producer_id):
+        return ProducerMetadata.query.filter_by(producer_id=producer_id).first().topic_name

@@ -8,7 +8,7 @@ import uuid
 import argparse
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@127.0.0.1:5430/readmanager"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@127.0.0.1:5432/postgres"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -20,6 +20,12 @@ migrate = Migrate(app, db)
 @app.route('/')
 def hello_world():
 	return "<h1> Write Manager welcomes you!</h1>"
+
+@app.route("/topics", methods=["GET"])
+def topics():
+	print(request.method)
+	# TODO : Return topic list
+	return {"topics" : ReadManager.list_topics()}
 
 @app.route("/topics/partitions", methods=["GET"])
 def partitions():
@@ -89,19 +95,19 @@ def cmdline_args():
 	parser = argparse.ArgumentParser()
 
 	parser.add_argument("-i", "--ip", help="ip address", type=str, default="127.0.0.1")
-	parser.add_argument("-p", "--port", help="port number", type=int, default=8080)
+	parser.add_argument("-p", "--port", help="port number", type=int, default=8081)
 
 	parser.add_argument("-mi", "--manager_ip", help="manager ip address", type=str)
 	parser.add_argument("-mp", "--manager_port", help="manager port number", type=int)
 
 	return parser.parse_args()
 
-# if __name__ == '__main__':
-	# args = cmdline_args()
+if __name__ == '__main__':
+	args = cmdline_args()
 
 	# global broker
-	# with app.app_context():
-		# db.create_all() # <--- create db object.
+	with app.app_context():
+		db.create_all() # <--- create db object.
 	
-	# app.run(debug=True, port = args.port)
+	app.run(debug=True, port = args.port)
 	# TODO: create a thread that periodically sends heartbeat to manager

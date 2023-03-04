@@ -6,9 +6,13 @@ from concurrent.futures import ThreadPoolExecutor
 import socket
 import uuid
 import argparse
+from random import randint
+from time import sleep
+import requests
+from threading import Thread
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@127.0.0.1:5430/postgres"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@127.0.0.1:5432/postgres"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -18,6 +22,7 @@ broker = LoggingQueue()
 
 # TODO : Add database schemas
 
+broker_id = None
 
 @app.route('/')
 def hello_world():
@@ -28,11 +33,13 @@ def hello_world():
 
 @app.route("/producer/produce", methods=["POST"])
 def enqueue():
+    print("produce")
     dict = request.get_json()
-    topic = (dict['topic'])
-    partition_id = (dict['partition_id'])
+    print(dict)
+    topic = dict['topic_name']
+    partition_id = dict['partition_id']
     message = dict['message']
-
+    # import ipdb; ipdb.set_trace()
     status = broker.enqueue(message=message, topic=topic,
                             partition_id=partition_id)
     response = {}
@@ -95,7 +102,33 @@ def size():
 
     return response
 
+def register(mIP, mPort, p):
+    # /broker/register
+    # response["status"] = "Success"
+    # response["message"] = status this is the broker id
+    send_url = f"http://{mIP}:{mPort}/broker/register"
+    data = {
+        "port": p
+    }
+    try:
+        r = requests.post(send_url, json=data)
+        r.raise_for_status()
+        response = r.json()
+        if response["status"] == "Success":
+            print("Registered successfully")
+            return response["broker_id"]
+        else:
+            print(f"Failed, {response['message']}")
+            return -1
 
+    except requests.exceptions.HTTPError as errh:
+        print("Http Error:", errh)
+        return -1
+    except requests.exceptions.ConnectionError as errc:
+        print("Error Connecting:", errc)
+        return -1
+
+# python BrokerWrapper.py -p 8082 -mIP 127.0.0.1 -mPort 8080 
 def cmdline_args():
     # create parser
     parser = argparse.ArgumentParser()
@@ -106,8 +139,6 @@ def cmdline_args():
     parser.add_argument("-mPort", "--managerPort",
                         help="manager port number", type=int, default=8081)
     return parser.parse_args()
-
-
 
 if __name__ == '__main__':
     args = cmdline_args()
@@ -121,11 +152,22 @@ if __name__ == '__main__':
     print(f"IP Address: {ip_address}, Port: {args.port}")
     
     # keep on trying to connect to manager
+    while True:
+        response = register(args.managerIP, args.managerPort, args.port)
+        # import ipdb
+        # ipdb.set_trace()
+        if response != -1:
+            broker_id = response
+            break
+        sleep(randint(1, 3))
 
 
-
-    with ThreadPoolExecutor(max_workers=1) as executor:
-        executor.submit(broker.heartbeat, args.managerIP, args.managerPort)
-    
-    app.run(debug=True, port=args.port)
+    # with ThreadPoolExecutor(max_workers=1) as executor:
+    #     executor.submit(broker.heartbeat, args.managerIP, args.managerPort, broker_id)
+    # executor = Thread(target=broker.heartbeat,args=(args.managerIP, args.managerPort, broker_id))
+    # executor.daemon = True
+    # executor.start()
+    # TODO remove reloader = false if needed
+    app.run(debug=True, port=args.port, use_reloader=False)
+    # executor.join()
     # TODO: create a thread that periodically sends heartbeat to manager
