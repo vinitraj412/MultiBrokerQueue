@@ -72,7 +72,7 @@ def dequeue():
 def size():
 	dict = request.get_json()
 	topic = (dict['topic_name'])
-	consumer_id = uuid.UUID(dict['consumer_id'])
+	consumer_id = str(dict['consumer_id'])
 
 	status = ReadManager.size(consumer_id=consumer_id, topic_name=topic)
 	response = {}
