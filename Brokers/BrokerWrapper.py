@@ -108,6 +108,7 @@ def cmdline_args():
     return parser.parse_args()
 
 
+
 if __name__ == '__main__':
     args = cmdline_args()
 
@@ -118,10 +119,13 @@ if __name__ == '__main__':
     hostname = socket.gethostname()
     ip_address = socket.gethostbyname(hostname)
     print(f"IP Address: {ip_address}, Port: {args.port}")
+    
     # keep on trying to connect to manager
+
+
 
     with ThreadPoolExecutor(max_workers=1) as executor:
         executor.submit(broker.heartbeat, args.managerIP, args.managerPort)
-
+    
     app.run(debug=True, port=args.port)
     # TODO: create a thread that periodically sends heartbeat to manager

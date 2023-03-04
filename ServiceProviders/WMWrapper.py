@@ -19,7 +19,7 @@ migrate = Migrate(app, db)
 # TODO : Add database schemas
 @app.route('/')
 def hello_world():
-	return "<h1> Write Manager welcomes you!</h1>"
+	return "ip: {}, port: {}".format(request.environ['REMOTE_ADDR'],request.environ['REMOTE_PORT'])
 
 @app.route("/topics", methods=["POST", "GET"])
 def topics():
@@ -62,8 +62,9 @@ def register_producer():
 
 @app.route("/broker/register", methods=["POST"])
 def register_broker():
-	dict = request.get_json()
-	endpoint = (dict['endpoint'])
+	ip = request.environ['REMOTE_ADDR']
+	port = request.environ['REMOTE_PORT']
+	endpoint = "http://{}:{}".format(ip,port)
 	status = WriteManager.register_broker(endpoint)
 	response = {}
 	

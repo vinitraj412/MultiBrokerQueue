@@ -78,6 +78,7 @@ class ReadManager:
         broker_id = PartitionMetadata.getBrokerID(topic_name,partition_id,offset)
 
         broker_endpoint = BrokerMetadata.getBrokerEndpoint(broker_id)
+        broker_endpoint = broker_endpoint + "/consumer/consume"
 
         with ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(self.send_request, broker_endpoint, topic_name, partition_id, offset)
