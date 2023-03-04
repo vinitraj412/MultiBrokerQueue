@@ -69,6 +69,9 @@ class WriteManager:
         # todo: when adding a broker get it in sync with current topics and create partitions for it.
         try:
             broker_id = BrokerMetadata.createBroker(endpoint)
+            topics = PartitionMetadata.listTopics()
+            for topic in topics:
+                PartitionMetadata.createPartition(topic,broker_id)
             print("Created Broker: {}",broker_id)
             return broker_id
         except:
