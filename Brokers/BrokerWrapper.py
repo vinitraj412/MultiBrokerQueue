@@ -10,9 +10,19 @@ from random import randint
 from time import sleep
 import requests
 from threading import Thread
-
+import os
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@127.0.0.1:5432/postgres"
+DATABASE_CONFIG = {
+    'driver': 'postgresql',
+    'host': os.getenv('DB_NAME'),
+    'user': 'postgres',
+    'password': 'postgres',
+    'port': 5432,
+    'dbname': os.getenv('DB_NAME')
+}
+db_url = f"{DATABASE_CONFIG['driver']}://{DATABASE_CONFIG['user']}:{DATABASE_CONFIG['password']}@{DATABASE_CONFIG['host']}:{DATABASE_CONFIG['port']}/{DATABASE_CONFIG['dbname']}"
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -23,6 +33,7 @@ broker = LoggingQueue()
 # TODO : Add database schemas
 
 broker_id = None
+
 
 @app.route('/')
 def hello_world():
@@ -102,6 +113,7 @@ def size():
 
     return response
 
+
 def register(mIP, mPort, p):
     # /broker/register
     # response["status"] = "Success"
@@ -128,7 +140,9 @@ def register(mIP, mPort, p):
         print("Error Connecting:", errc)
         return -1
 
-# python BrokerWrapper.py -p 8082 -mIP 127.0.0.1 -mPort 8080 
+# python BrokerWrapper.py -p 8082 -mIP 127.0.0.1 -mPort 8080
+
+
 def cmdline_args():
     # create parser
     parser = argparse.ArgumentParser()
@@ -140,6 +154,7 @@ def cmdline_args():
                         help="manager port number", type=int, default=8081)
     return parser.parse_args()
 
+
 if __name__ == '__main__':
     args = cmdline_args()
 
@@ -150,7 +165,7 @@ if __name__ == '__main__':
     hostname = socket.gethostname()
     ip_address = socket.gethostbyname(hostname)
     print(f"IP Address: {ip_address}, Port: {args.port}")
-    
+
     # keep on trying to connect to manager
     while True:
         response = register(args.managerIP, args.managerPort, args.port)
@@ -160,7 +175,6 @@ if __name__ == '__main__':
             broker_id = response
             break
         sleep(randint(1, 3))
-
 
     # with ThreadPoolExecutor(max_workers=1) as executor:
     #     executor.submit(broker.heartbeat, args.managerIP, args.managerPort, broker_id)
