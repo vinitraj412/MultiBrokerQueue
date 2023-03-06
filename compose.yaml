@@ -15,26 +15,25 @@ services:
             - read_manager_two
     
     write_manager:
-        image: MultiBrokerQueue/write_manager
-        # build: 
+        image: mbq:latest
         container_name: write_manager
         hostname: write_manager
-        deploy: # fill
+        deploy: 
+            replicas: 1
         networks:       
             - custom
         entrypoint: python
-        command: 
+        command: ./ServiceProviders/WMWrapper.py
 
     read_manager_one:
-        image: MultiBrokerQueue/read_manager
+        image: mbq:latest
         container_name: read_manager_one
-        # build: # fill
         deploy:
             replicas: 1
         networks:       
             - custom
         entrypoint: python
-        command: /ServiceProviders/RMWrapper.py
+        command: ./ServiceProviders/RMWrapper.py
         hostname: read_manager_one
         depends_on:
             - main_db_one
@@ -42,15 +41,14 @@ services:
             - DB_NAME=main_db_one
 
     read_manager_two:
-        image: MultiBrokerQueue/read_manager
+        image: mbq:latest
         container_name: read_manager_two
-        # build: # fill
         deploy:
             replicas: 1
         networks:       
             - custom
         entrypoint: python
-        command: /ServiceProviders/RMWrapper.py
+        command: ./ServiceProviders/RMWrapper.py
         hostname: read_manager_two
         depends_on:
             - main_db_one
@@ -58,11 +56,9 @@ services:
             - DB_NAME=main_db_one
     
     broker_one:
-        image: MultiBrokerQueue/broker
+        image: mbq:latest
         build: ./broker
         container_name: broker_one
-        # volumes:
-        #     - # fill
         networks:       
             - custom
         restart: always
@@ -75,8 +71,7 @@ services:
         command: ./Brokers/BrokerWrapper.py
 
     broker_two: 
-        image: MultiBrokerQueue/broker
-        # build: ./broker
+        image: mbq:latest
         container_name: broker_two
         networks:       
             - custom
@@ -87,11 +82,10 @@ services:
         environment:
             - DB_NAME=db_two
         entrypoint: python
-        command: # fill
+        command: ./Brokers/BrokerWrapper.py
     
     broker_three: 
-        image: MultiBrokerQueue/broker
-        # build: ./broker
+        image: mbq:latest
         container_name: broker_three
         networks:       
             - custom
@@ -101,6 +95,8 @@ services:
             - db_three
         environment:
             - DB_NAME=db_three
+        entrypoint: python
+        command: ./Brokers/BrokerWrapper.py
 
     main_db_one: 
         image: postgres:13
