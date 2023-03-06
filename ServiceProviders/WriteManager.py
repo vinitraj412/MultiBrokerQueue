@@ -4,6 +4,7 @@ import uuid
 import requests
 from typing import List
 from concurrent.futures import ThreadPoolExecutor
+from random import randint
 
 class WriteManager:
     def __init__(self) -> None:
@@ -40,16 +41,20 @@ class WriteManager:
 
     @staticmethod
     def getBalancedPartition(topic_name):
-        active_brokers = BrokerMetadata.get_active_brokers()
+        # active_brokers = BrokerMetadata.get_active_brokers()
 
-        partitions = PartitionMetadata.listPartitions(topic_name)
-        if(len(partitions)==0):
+        partition_ids = PartitionMetadata.listPartitions(topic_name)
+        if(len(partition_ids)==0):
             return -1
-        
-        
-        # select partition with least number of consumers
-        partition_id = min(partitions,key=lambda x: ConsumerMetadata.getConsumerCount(topic_name,x))
-        return partition_id
+        n = len(partition_ids)
+        # get the corresponding broker for each partition
+        idx = randint(0, n)
+        for i in range(0, n):
+            partition_id = partition_ids[(i+idx) %n]
+            if(BrokerMetadata.checkBroker(PartitionMetadata.getBrokerID(topic_name, partition_id))):
+                return partition_id
+        # No ok partitions available
+        return -1
     
     # register_producer(topic_name, parition_id = None) -> success ack
     @staticmethod
@@ -115,7 +120,7 @@ class WriteManager:
     def enqueue(producer_id, message, partition_id = None):
         topic_name = ProducerMetadata.getTopic(producer_id)
         if not ProducerMetadata.topic_registered(producer_id, topic_name):
-            return -1   
+            return {"status": "Failure", "message": "Producer not registered for this topic"}   
         
         if partition_id is None:
             partition_id = WriteManager.round_robin_partition(topic_name, producer_id)
@@ -127,7 +132,7 @@ class WriteManager:
             future = executor.submit(WriteManager.send_request, broker_endpoint, topic_name, partition_id, message)
             response = future.result()
         
-        return 1
+        return response
         # return WriteManager.send_request(broker_endpoint, topic_name, partition_id, message)
   
     # list_topics()

@@ -122,18 +122,8 @@ def enqueue():
 	partition_id = dict.get('partition_id', None)
 	message = dict['message']
 
-	status = WriteManager.enqueue(producer_id=producer_id, partition_id=partition_id, message=message)
-	response = {}
-	# import ipdb; ipdb.set_trace()
-	if status == 1:
-		response["status"] = "Success"
-	else:
-		response["status"] = "Failure"
-		if status == -1:
-			response["message"] = f"producer {producer_id} not registered to {topic}"
-		elif status == -2:
-			response["message"] = f"Producer {producer_id} is not registered for topic {topic}."
-
+	response = WriteManager.enqueue(producer_id=producer_id, partition_id=partition_id, message=message)
+	
 	return response
 
 
