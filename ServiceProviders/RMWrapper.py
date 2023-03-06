@@ -29,7 +29,7 @@ migrate = Migrate(app, db)
 
 @app.route('/')
 def hello_world():
-	return "<h1> Write Manager welcomes you!</h1>"
+	return "<h1> Read Manager welcomes you!</h1>"
 
 @app.route("/topics", methods=["GET"])
 def topics():
