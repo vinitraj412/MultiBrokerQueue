@@ -1,5 +1,6 @@
 from ManagerModel import PartitionMetadata, ConsumerMetadata, BrokerMetadata
 import uuid
+import random
 import requests
 from concurrent.futures import ThreadPoolExecutor
 
@@ -19,28 +20,35 @@ class ReadManager:
     #         futures = [executor.submit(self.send_heartbeat, endpoint) for endpoint in self.endpoint_list]
     
 
-    def getBalancedPartition(self, topic_name):
-        partitions = self.list_partitions(topic_name)
-        if(len(partitions)==0):
-            return -1
-        # select partition with least number of consumers
-        partition_id = min(partitions,key=lambda x: ConsumerMetadata.getConsumerCount(topic_name,x))
-        return partition_id
+    # def getBalancedPartition(self, topic_name):
+    #     partitions = self.list_partitions(topic_name)
+    #     if(len(partitions)==0):
+    #         return -1
+    #     # select partition with least number of consumers
+    #     partition_id = min(partitions,key=lambda x: ConsumerMetadata.getConsumerCount(topic_name,x))
+    #     return partition_id
+    
     
     def getHealthyPartition(self, topic_name, consumer_id):
-        partitions = self.list_partitions(topic_name)
 
-        # select partition with offset < partition size 
-        partitions = [part_id for part_id in partitions 
-                      if ConsumerMetadata.getOffset(topic_name,consumer_id,part_id) < PartitionMetadata.getSize(topic_name,part_id)]
-        if(len(partitions)==0):
+        # active_brokers = BrokerMetadata.get_active_brokers()
+
+        partition_ids = PartitionMetadata.listPartitions(topic_name)
+        if(len(partition_ids)==0):
             return -1
-        partition_id = min(partitions,key=lambda x: ConsumerMetadata.getConsumerCount(topic_name,x))
-        return partition_id
+        n = len(partition_ids)
+        # get the corresponding broker for each partition
+        idx = random.randint(0, n)
+        for i in range(n):
+            partition_id = partition_ids[(i+idx) %n]
+            if(BrokerMetadata.checkBroker(PartitionMetadata.getBrokerID(topic_name, partition_id)) and (ReadManager.size(consumer_id, topic_name, partition_id)>0)):
+                return partition_id
+        
+        return -1
     
     # register_consumer(topic_name, parition_id = None) -> success ack
 
-    def register_consumer(self, topic_name,partition_id=None):
+    def register_consumer(self, topic_name, partition_id=None):
         if partition_id is None:
             partition_id = self.getBalancedPartition(topic_name)
             if partition_id == -1:
@@ -48,7 +56,7 @@ class ReadManager:
                 return -1
 
         consumer_id=str(uuid.uuid4())
-        ConsumerMetadata.registerConsumer(consumer_id=consumer_id,topic_name=topic_name,partition_id=partition_id)
+        ConsumerMetadata.registerConsumer(consumer_id=consumer_id, topic_name=topic_name, partition_id=partition_id)
         return consumer_id
     
     def size(self,consumer_id,topic_name, partition_id=None):
@@ -57,9 +65,9 @@ class ReadManager:
             partitions = self.list_partitions(topic_name)
             size = 0
             for part_id in partitions:
-                size += PartitionMetadata.getSize(topic_name,part_id) - ConsumerMetadata.getOffset(topic_name,consumer_id,part_id)
+                size += PartitionMetadata.getSize(topic_name, part_id) - ConsumerMetadata.getOffset(topic_name, consumer_id, part_id)
             return size
-        return PartitionMetadata.getSize(topic_name,partition_id) - ConsumerMetadata.getOffset(topic_name,consumer_id,partition_id)
+        return PartitionMetadata.getSize(topic_name, partition_id) - ConsumerMetadata.getOffset(topic_name, consumer_id, partition_id)
 
     def send_request(self, broker_endpoint, topic_name, partition_id, offset):
         data = {
@@ -72,11 +80,15 @@ class ReadManager:
 
     def dequeue(self, consumer_id, topic_name, partition_id=None):
         if partition_id is None:
-            partition_id = ReadManager.getHealthyPartition(self,topic_name,consumer_id)
+            partition_id = ReadManager.getHealthyPartition(self, topic_name, consumer_id)
+            if partition_id == -1:
+                response_dict = {'status': 'Failure',
+                                'message': 'No healthy partitions found'}
+                return response_dict
 
-        offset = ConsumerMetadata.getOffset(topic_name,consumer_id,partition_id)
-        broker_id = PartitionMetadata.getBrokerID(topic_name,partition_id,offset)
-
+        offset = ConsumerMetadata.getOffset(topic_name, consumer_id, partition_id)
+        broker_id = PartitionMetadata.getBrokerID(topic_name, partition_id)
+        
         broker_endpoint = BrokerMetadata.getBrokerEndpoint(broker_id)
         broker_endpoint = broker_endpoint + "/consumer/consume"
 

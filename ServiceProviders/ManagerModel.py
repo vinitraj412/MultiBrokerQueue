@@ -43,9 +43,9 @@ class BrokerMetadata(db.Model):
         db.session.commit()
 
     @staticmethod
-    def checkBroker(endpoint: str) -> bool:
-        broker = BrokerMetadata.query.filter_by(endpoint=endpoint).first()
-        return True if (broker is not None and broker.status) else False
+    def checkBroker(broker_id) -> bool:
+        broker = BrokerMetadata.query.filter_by(broker_id=broker_id).first()
+        return True if ((datetime.utcnow() - broker.last_beat_timestamp).microseconds < 300000) else False
 
     @staticmethod
     def get_active_brokers() -> list:

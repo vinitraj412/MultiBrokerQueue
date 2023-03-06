@@ -60,22 +60,8 @@ def dequeue():
 	consumer_id = uuid.UUID(dict['consumer_id'])
 	partition_id = dict.get('partition_id', None)		
     # if topic exists send consumer id
-	status = ReadManager.dequeue(topic_name=topic, consumer_id=consumer_id, partition_id=partition_id)
-	response = {}
-
-    # TODO: check the async io output
-	if isinstance(status, str):
-		response["status"] = "Success"
-		response["message"] = status
-	else:
-		response["status"] = "Failure"
-		if status == -1:
-			response["message"] = f"Topic {topic} does not exist."
-		elif status == -2:
-			response["message"] = f"Consumer {consumer_id} is not registered for topic {topic}."
-		elif status == -3:
-			response["message"] = f"No more messages for {consumer_id}"
-
+	response = ReadManager.dequeue(topic_name=topic, consumer_id=consumer_id, partition_id=partition_id)
+	
 	return response
 
 @app.route("/size", methods=["GET"])
