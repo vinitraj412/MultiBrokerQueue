@@ -12,7 +12,7 @@ import requests
 from threading import Thread
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@127.0.0.1:5432/postgres"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@127.0.0.1:5433/postgres"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -128,7 +128,7 @@ def register(mIP, mPort, p):
         print("Error Connecting:", errc)
         return -1
 
-# python BrokerWrapper.py -p 8082 -mIP 127.0.0.1 -mPort 8080 
+# python btest.py -p 8083 -mIP 127.0.0.1 -mPort 8080 
 def cmdline_args():
     # create parser
     parser = argparse.ArgumentParser()

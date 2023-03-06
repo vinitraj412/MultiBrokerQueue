@@ -1,15 +1,14 @@
 # TODO: Implement Flask Interface \
 from flask import Flask, request
-from .ReadManager import ReadManager
-from flask_sqlalchemy import SQLAlchemy
+from ReadManager import ReadManager
 from flask_migrate import Migrate
-from .ManagerModel import db
+from ManagerModel import db
 
 import uuid
 import argparse
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgrespassword@127.0.0.1:5432/flasksql"
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@127.0.0.1:5432/postgres"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -21,6 +20,12 @@ migrate = Migrate(app, db)
 @app.route('/')
 def hello_world():
 	return "<h1> Write Manager welcomes you!</h1>"
+
+@app.route("/topics", methods=["GET"])
+def topics():
+	print(request.method)
+	# TODO : Return topic list
+	return {"topics" : ReadManager.list_topics()}
 
 @app.route("/topics/partitions", methods=["GET"])
 def partitions():
@@ -43,9 +48,9 @@ def dequeue():
 	dict = request.get_json()
 	topic = (dict['topic'])
 	consumer_id = uuid.UUID(dict['consumer_id'])
-	
+	partition_id = dict.get('partition_id', None)		
     # if topic exists send consumer id
-	status = ReadManager.dequeue(topic_name=topic, consumer_id=consumer_id)
+	status = ReadManager.dequeue(topic_name=topic, consumer_id=consumer_id, partition_id=partition_id)
 	response = {}
 
     # TODO: check the async io output
@@ -67,7 +72,7 @@ def dequeue():
 def size():
 	dict = request.get_json()
 	topic = (dict['topic_name'])
-	consumer_id = uuid.UUID(dict['consumer_id'])
+	consumer_id = str(dict['consumer_id'])
 
 	status = ReadManager.size(consumer_id=consumer_id, topic_name=topic)
 	response = {}
@@ -90,7 +95,7 @@ def cmdline_args():
 	parser = argparse.ArgumentParser()
 
 	parser.add_argument("-i", "--ip", help="ip address", type=str, default="127.0.0.1")
-	parser.add_argument("-p", "--port", help="port number", type=int, default=8080)
+	parser.add_argument("-p", "--port", help="port number", type=int, default=8081)
 
 	parser.add_argument("-mi", "--manager_ip", help="manager ip address", type=str)
 	parser.add_argument("-mp", "--manager_port", help="manager port number", type=int)
