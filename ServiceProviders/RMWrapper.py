@@ -7,6 +7,7 @@ from ManagerModel import db
 import uuid
 import argparse
 import os
+
 app = Flask(__name__)
 DATABASE_CONFIG = {
     'driver': 'postgresql',
@@ -100,10 +101,10 @@ def cmdline_args():
 
 if __name__ == '__main__':
 	args = cmdline_args()
-
 	# global broker
 	with app.app_context():
 		db.create_all() # <--- create db object.
 	
-	app.run(debug=True, port = args.port)
+	# app.run(debug=True, port = args.port)
+	app.run(host='0.0.0.0')
 	# TODO: create a thread that periodically sends heartbeat to manager

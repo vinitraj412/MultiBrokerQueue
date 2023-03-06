@@ -147,11 +147,11 @@ def cmdline_args():
     # create parser
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--port", help="port number",
-                        type=int, default=8080)
+                        type=int, default=5000)
     parser.add_argument("-mIP", "--managerIP",
                         help="write manager IP address", type=str, default="write_manager")
     parser.add_argument("-mPort", "--managerPort",
-                        help="write manager port number", type=int, default=8080)
+                        help="write manager port number", type=int, default=5000)
     # parser.add_argument("-mIP", "--managerIP",
     #                     help="read manager IP address", type=str, default="read_manager")
     # parser.add_argument("-mPort", "--managerPort",
@@ -186,6 +186,7 @@ if __name__ == '__main__':
     # executor.daemon = True
     # executor.start()
     # TODO remove reloader = false if needed
-    app.run(debug=True, port=args.port, use_reloader=False)
+    # app.run(debug=True, port=args.port, use_reloader=False)
+    app.run(host='0.0.0.0',port=args.port)
     # executor.join()
     # TODO: create a thread that periodically sends heartbeat to manager
