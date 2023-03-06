@@ -147,11 +147,15 @@ def cmdline_args():
     # create parser
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--port", help="port number",
-                        type=int, default=8082)
+                        type=int, default=8080)
     parser.add_argument("-mIP", "--managerIP",
-                        help="manager IP address", type=str, default="0.0.0.0")
+                        help="write manager IP address", type=str, default="write_manager")
     parser.add_argument("-mPort", "--managerPort",
-                        help="manager port number", type=int, default=8081)
+                        help="write manager port number", type=int, default=8080)
+    # parser.add_argument("-mIP", "--managerIP",
+    #                     help="read manager IP address", type=str, default="read_manager")
+    # parser.add_argument("-mPort", "--managerPort",
+    #                     help="read manager port number", type=int, default=8081)
     return parser.parse_args()
 
 
