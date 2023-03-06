@@ -40,9 +40,13 @@ class WriteManager:
 
     @staticmethod
     def getBalancedPartition(topic_name):
+        active_brokers = BrokerMetadata.get_active_brokers()
+
         partitions = PartitionMetadata.listPartitions(topic_name)
         if(len(partitions)==0):
             return -1
+        
+        
         # select partition with least number of consumers
         partition_id = min(partitions,key=lambda x: ConsumerMetadata.getConsumerCount(topic_name,x))
         return partition_id
@@ -111,7 +115,7 @@ class WriteManager:
     def enqueue(producer_id, message, partition_id = None):
         topic_name = ProducerMetadata.getTopic(producer_id)
         if not ProducerMetadata.topic_registered(producer_id, topic_name):
-            return -1
+            return -1   
         
         if partition_id is None:
             partition_id = WriteManager.round_robin_partition(topic_name, producer_id)
