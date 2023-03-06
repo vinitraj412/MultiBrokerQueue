@@ -21,8 +21,8 @@ services:
         hostname: write_manager
         # volumes:
             # - ../data/write_manager:/app/scratch
-        ports:
-            -   8083:8080
+        # ports:
+        #     -   8083:8080
         deploy: 
             replicas: 1
         networks:       
@@ -39,8 +39,8 @@ services:
         container_name: read_manager_one
         # volumes:
             # - ../data/read_manager_one:/app/scratch
-        ports:
-            - 8081:8081
+        # ports:
+        #     - 8081:8081
         deploy:
             replicas: 1
         networks:       
@@ -58,8 +58,8 @@ services:
         container_name: read_manager_two
         # volumes:
             # - ../data/read_manager_two:/app/scratch
-        ports:
-            - 8082:8081
+        # ports:
+        #     - 8082:8081
         deploy:
             replicas: 1
         networks:       
@@ -78,8 +78,8 @@ services:
         container_name: broker_one
         # volumes:
             # - ../data/broker_one:/app/scratch
-        ports:
-            - 9090:8080
+        # ports:
+        #     - 9090:8080
         networks:       
             - custom
         restart: always
@@ -96,8 +96,8 @@ services:
         container_name: broker_two
         # volumes:
             # - ../data/broker_two:/app/scratch
-        ports:
-            - 9091:8080
+        # ports:
+        #     - 9091:8080
         networks:       
             - custom
         restart: always
@@ -116,8 +116,8 @@ services:
             # - ../data/broker_three:/app/scratch
         networks:       
             - custom
-        ports:
-            - 9092:8080
+        # ports:
+        #     - 9092:8080
         restart: always
         hostname: broker_three
         depends_on:
@@ -139,8 +139,8 @@ services:
                 - 'POSTGRES_DB=main_db_one'
         networks:       
             - custom
-        ports:
-            - 5432:5432
+        # ports:
+        #     - 5432:5432
 
     main_db_two: 
         image: postgres:13
@@ -154,8 +154,8 @@ services:
                 - 'POSTGRES_DB=main_db_two'
         networks:       
             - custom
-        ports:
-            - 5433:5432
+        # ports:
+        #     - 5433:5432
 
 
     main_db_three: 
@@ -170,8 +170,8 @@ services:
                 - 'POSTGRES_DB=main_db_three'
         networks:       
             - custom
-        ports:
-            - 5437:5432
+        # ports:
+        #     - 5437:5432
 
     db_one:
         image: postgres:13
@@ -185,8 +185,8 @@ services:
                 - 'POSTGRES_DB=db_one'
         networks:       
             - custom
-        ports:
-            - 5434:5432
+        # ports:
+        #     - 5434:5432
         
     db_two:
         image: postgres:13
@@ -200,8 +200,8 @@ services:
                 - 'POSTGRES_DB=db_two'
         networks:       
             - custom
-        ports:
-            - 5435:5432
+        # ports:
+        #     - 5435:5432
 
     db_three:
         image: postgres:13
@@ -215,8 +215,9 @@ services:
                 - 'POSTGRES_DB=db_three'
         networks:       
             - custom
-        ports:
-            - 5436:5432
+        # ports:
+        #     - 5436:5432
         
 networks:
-    custom: {}
+    custom:
+        driver: bridge
