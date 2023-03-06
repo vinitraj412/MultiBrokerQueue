@@ -6,9 +6,19 @@ from ManagerModel import db
 
 import uuid
 import argparse
-
+import os
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "postgresql://postgres:postgres@127.0.0.1:5432/postgres"
+DATABASE_CONFIG = {
+    'driver': 'postgresql',
+    'host': os.getenv('DB_NAME'),
+    'user': 'postgres',
+    'password': 'postgres',
+    'port': 5432,
+    'dbname': os.getenv('DB_NAME')
+}
+db_url = f"{DATABASE_CONFIG['driver']}://{DATABASE_CONFIG['user']}:{DATABASE_CONFIG['password']}@{DATABASE_CONFIG['host']}:{DATABASE_CONFIG['port']}/{DATABASE_CONFIG['dbname']}"
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
