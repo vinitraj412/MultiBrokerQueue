@@ -49,7 +49,7 @@ class BrokerMetadata(db.Model):
 
     @staticmethod
     def get_active_brokers() -> list:
-        return [broker.broker_id for broker in BrokerMetadata.query.filter_by(status=True).all()]
+        return [broker.broker_id for broker in BrokerMetadata.query.all() if (datetime.utcnow() - broker.last_beat_timestamp).microseconds < 300000]
 
     @staticmethod
     def getBrokerEndpoint(broker_id: int) -> str:
