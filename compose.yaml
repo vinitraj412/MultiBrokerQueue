@@ -5,6 +5,7 @@ services:
         container_name: reverse_proxy
         volumes:
             - ./nginx.conf:/etc/nginx/nginx.conf
+            # - ./data/reverse_proxy:/app/scratch
         ports:
             - 8080:80
         deploy:
@@ -18,6 +19,10 @@ services:
         image: mbq:latest
         container_name: write_manager
         hostname: write_manager
+        # volumes:
+            # - ./data/write_manager:/app/scratch
+        ports:
+            -   8083:8080
         deploy: 
             replicas: 1
         networks:       
@@ -28,6 +33,10 @@ services:
     read_manager_one:
         image: mbq:latest
         container_name: read_manager_one
+        # volumes:
+            # - ./data/read_manager_one:/app/scratch
+        ports:
+            - 8081:8081
         deploy:
             replicas: 1
         networks:       
@@ -43,6 +52,10 @@ services:
     read_manager_two:
         image: mbq:latest
         container_name: read_manager_two
+        # volumes:
+            # - ./data/read_manager_two:/app/scratch
+        ports:
+            - 8082:8082
         deploy:
             replicas: 1
         networks:       
@@ -59,6 +72,10 @@ services:
         image: mbq:latest
         build: ./broker
         container_name: broker_one
+        # volumes:
+            # - ./data/broker_one:/app/scratch
+        ports:
+            - 9090:9090
         networks:       
             - custom
         restart: always
@@ -73,6 +90,10 @@ services:
     broker_two: 
         image: mbq:latest
         container_name: broker_two
+        # volumes:
+            # - ./data/broker_two:/app/scratch
+        ports:
+            - 9091:9091
         networks:       
             - custom
         restart: always
@@ -87,8 +108,12 @@ services:
     broker_three: 
         image: mbq:latest
         container_name: broker_three
+        # volumes:
+            # - ./data/broker_three:/app/scratch
         networks:       
             - custom
+        ports:
+            - 9092:9092
         restart: always
         hostname: broker_three
         depends_on:
@@ -103,64 +128,75 @@ services:
         container_name: main_db_one
         restart: always
         volumes:
-                - ./data:/var/lib/postgresql/data
+                - ./data/main_db_one:/var/lib/postgresql/data
         hostname: main_db_one
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
                 - 'POSTGRES_DB=main_db_one'
         networks:       
             - custom
+        ports:
+            - 5432:5432
 
     main_db_two: 
         image: postgres:13
         container_name: main_db_two
         restart: always
         volumes:
-                - ./data:/var/lib/postgresql/data
+                - ./data/main_db_two:/var/lib/postgresql/data
         hostname: main_db_two
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
                 - 'POSTGRES_DB=main_db_two'
         networks:       
             - custom
+        ports:
+            - 5433:5433
 
     db_one:
         image: postgres:13
         container_name: db_one
         restart: always
         volumes:
-                - ./data:/var/lib/postgresql/data
+                - ./data/db_one:/var/lib/postgresql/data
         hostname: db_one
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
                 - 'POSTGRES_DB=db_one'
         networks:       
             - custom
+        ports:
+            - 5434:5434
         
     db_two:
         image: postgres:13
         container_name: db_two
         restart: always
         volumes:
-                - ./data:/var/lib/postgresql/data
+                - ./data/db_two:/var/lib/postgresql/data
         hostname: db_two
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
                 - 'POSTGRES_DB=db_two'
         networks:       
             - custom
+        ports:
+            - 5435:5435
+
     db_three:
         image: postgres:13
         container_name: db_three
         restart: always
         volumes:
-                - ./data:/var/lib/postgresql/data
+                - ./data/db_three:/var/lib/postgresql/data
         hostname: db_three
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
                 - 'POSTGRES_DB=db_three'
         networks:       
             - custom
+        ports:
+            - 5436:5436
         
 networks:
     custom: {}
