@@ -124,13 +124,12 @@ class PartitionMetadata(db.Model):
         return list(set(query))
 
     @staticmethod
-    def listPartitions(topic_name):
-        query = [topic.partition_id for topic in PartitionMetadata.query.filter_by(
-            topic_name=topic_name).all() if BrokerMetadata.checkBroker(topic.broker_id)]
+    def listPartition_IDs(topic_name):
+        query = [entry.partition_id for entry in PartitionMetadata.query.filter_by(topic_name=topic_name).all() if BrokerMetadata.checkBroker(entry.broker_id)]
         return sorted(list(set(query)))
 
     @staticmethod
-    def getPartition(topic_name, partition_id):
+    def getPartition_Metadata(topic_name, partition_id):
         return PartitionMetadata.query.filter_by(topic_name=topic_name, partition_id=partition_id).first().id
     
     @staticmethod
@@ -210,12 +209,12 @@ class PartitionMetadata(db.Model):
 class ConsumerMetadata(db.Model):
     __tablename__ = 'ConsumerMetadata'
     consumer_id = db.Column(db.String(), primary_key=True)
-    partition_metadata = db.Column(db.Integer(), db.ForeignKey('PartitionMetadata.id'), primary_key=True)
+    partition_metadata = db.Column(db.Integer())
     offset = db.Column(db.Integer())  # will be
 
     def __init__(self, consumer, topic_name, partition_id, offset):
         self.consumer_id = consumer
-        self.partition_metadata = PartitionMetadata.getPartition(topic_name, partition_id)
+        self.partition_metadata = PartitionMetadata.getPartition_Metadata(topic_name, partition_id)
         self.offset = offset
 
     @staticmethod
@@ -226,23 +225,30 @@ class ConsumerMetadata(db.Model):
 
     @staticmethod
     def getOffset(topic_name, consumer_id, partition_id):
-        part_id = PartitionMetadata.getPartition(topic_name, partition_id)
-        obj= ConsumerMetadata.query.filter_by(consumer_id=consumer_id, partition_metadata=part_id).first()
+        part_metadata = PartitionMetadata.getPartition_Metadata(topic_name, partition_id)
+        obj= ConsumerMetadata.query.filter_by(consumer_id=consumer_id, partition_metadata=part_metadata).first()
         if obj is None:
             return 0
         return obj.offset
 
     @staticmethod
     def incrementOffset(consumer_id, topic_name, partition_id):
-        part_id = PartitionMetadata.getPartition(topic_name, partition_id)
-        entry = ConsumerMetadata.query.filter_by(consumer_id=consumer_id, partition_metadata=part_id).first()
+        part_metadata = PartitionMetadata.getPartition_Metadata(topic_name, partition_id)
+        entry = ConsumerMetadata.query.filter_by(consumer_id=consumer_id, partition_metadata=part_metadata).first()
         entry.offset += 1
         db.session.commit()
 
     @staticmethod
     def getConsumerCount(topic_name, partition_id):
-        part_id = PartitionMetadata.getPartition(topic_name, partition_id)
-        return ConsumerMetadata.query.filter_by(partition_metadata=part_id).count()
+        part_metadata = PartitionMetadata.getPartition_Metadata(topic_name, partition_id)
+        return ConsumerMetadata.query.filter_by(partition_metadata=part_metadata).count()
+
+    @staticmethod
+    def updateConsumerPartition(consumer_id, new_partition_metadata):
+        entry=ConsumerMetadata.query.filter_by(consumer_id=consumer_id).first()
+        entry.partition_metadata=new_partition_metadata
+        db.session.commit()
+
 
 
 # Table : Producers

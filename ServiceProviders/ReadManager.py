@@ -10,7 +10,7 @@ class ReadManager:
 
         # active_brokers = BrokerMetadata.get_active_brokers()
 
-        partition_ids = PartitionMetadata.listPartitions(topic_name)
+        partition_ids = PartitionMetadata.listPartition_IDs(topic_name)
         if(len(partition_ids)==0):
             return -1
         n = len(partition_ids)
@@ -56,6 +56,16 @@ class ReadManager:
         return response.json()
 
     @staticmethod
+    def update_consumer_part_req(wm_endpoint,consumer_id, new_part_metadata):
+        data = {
+            "consumer_id": consumer_id,
+            "new_part_metadata":new_part_metadata
+        }
+        response = requests.post(wm_endpoint, json=data)
+        return response.json()
+
+    @staticmethod
+    # TODO: is partition_id necessary isnt partition fixed when registering 
     def dequeue(consumer_id, topic_name, partition_id=None):
         if partition_id is None:
             partition_id = ReadManager.getHealthyPartition(topic_name, consumer_id)
@@ -63,6 +73,9 @@ class ReadManager:
                 response_dict = {'status': 'Failure',
                                 'message': 'No healthy partitions found'}
                 return response_dict
+            new_part_metadata=PartitionMetadata.getPartition_Metadata(topic_name=topic_name,partition_id=partition_id)
+            # ConsumerMetadata.updateConsumerPartition(consumer_id=consumer_id,new_partition_metadata=new_part_metadata)
+            ReadManager.update_consumer_part_req("http://write_manager:5000/consumer/update_partition_metadata", consumer_id,new_part_metadata)
 
         offset = ConsumerMetadata.getOffset(topic_name, consumer_id, partition_id)
         broker_id = PartitionMetadata.getBrokerID(topic_name, partition_id)
@@ -86,5 +99,5 @@ class ReadManager:
     # list_partitions(topic_name)    
     @staticmethod
     def list_partitions(topic_name):
-        return PartitionMetadata.listPartitions(topic_name)
+        return PartitionMetadata.listPartition_IDs(topic_name)
 	

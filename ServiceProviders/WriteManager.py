@@ -19,6 +19,10 @@ class WriteManager:
     # create_topic(topic_name)
     # def create_topic(topic_name): may be Partion is also needed
     @staticmethod
+    def updateConsumerPartition(consumer_id,new_part_metadata):
+        ConsumerMetadata.updateConsumerPartition(consumer_id=consumer_id,new_partition_metadata=new_part_metadata)
+
+    @staticmethod
     def receive_heartbeat(broker_id):
         # check if that broker was inactive
         if not BrokerMetadata.checkBroker(broker_id):
@@ -58,7 +62,7 @@ class WriteManager:
     def getBalancedPartition(topic_name):
         # active_brokers = BrokerMetadata.get_active_brokers()
 
-        partition_ids = PartitionMetadata.listPartitions(topic_name)
+        partition_ids = PartitionMetadata.listPartition_IDs(topic_name)
         if(len(partition_ids)==0):
             return -1
         n = len(partition_ids)
@@ -80,7 +84,7 @@ class WriteManager:
     # list_partitions(topic_name)
     @staticmethod
     def list_partitions(topic_name):
-        return PartitionMetadata.listPartitions(topic_name)
+        return PartitionMetadata.listPartition_IDs(topic_name)
     # returns partitioned list 
     
     @staticmethod

@@ -142,6 +142,15 @@ def enqueue():
 	
 	return response
 
+@app.route("/consumer/update_partition_metadata",methods=["POST"])
+def update_metadata_consumer():
+	dict = request.get_json()
+	consumer_id = dict["consumer_id"]
+	new_part_metdata = dict["new_part_metdata"]
+	WriteManager.updateConsumerPartition(consumer_id=consumer_id,new_partition_metadata=new_part_metadata)
+	response = {"message" :  "Success"}
+	return response
+
 @app.route("/consumer/offset", methods=["POST"])
 def increment_offset():
 	dict = request.get_json()
