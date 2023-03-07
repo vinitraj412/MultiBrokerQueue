@@ -48,16 +48,16 @@ class ReadManager:
     
     # register_consumer(topic_name, parition_id = None) -> success ack
 
-    def register_consumer(self, topic_name, partition_id=None):
-        if partition_id is None:
-            partition_id = self.getBalancedPartition(topic_name)
-            if partition_id == -1:
-                print("No partitions found")
-                return -1
+    # def register_consumer(self, topic_name, partition_id=None):
+    #     if partition_id is None:
+    #         partition_id = self.getBalancedPartition(topic_name)
+    #         if partition_id == -1:
+    #             print("No partitions found")
+    #             return -1
 
-        consumer_id=str(uuid.uuid4())
-        ConsumerMetadata.registerConsumer(consumer_id=consumer_id, topic_name=topic_name, partition_id=partition_id)
-        return consumer_id
+    #     consumer_id=str(uuid.uuid4())
+    #     ConsumerMetadata.registerConsumer(consumer_id=consumer_id, topic_name=topic_name, partition_id=partition_id)
+    #     return consumer_id
     
     def size(self,consumer_id,topic_name, partition_id=None):
         if partition_id is None:
@@ -77,6 +77,14 @@ class ReadManager:
         }
         response = requests.get(broker_endpoint, data=data)
         return response.json()
+    
+    def inc_offset(self, wm_endpoint, topic_name, consumer_id):
+        data = {
+            "topic_name": topic_name,
+            "consumer_id": consumer_id
+        }
+        response = requests.post(wm_endpoint, data=data)
+        return response.json()
 
     def dequeue(self, consumer_id, topic_name, partition_id=None):
         if partition_id is None:
@@ -94,7 +102,8 @@ class ReadManager:
 
         with ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(self.send_request, broker_endpoint, topic_name, partition_id, offset)
-            ConsumerMetadata.incrementOffset(topic_name,consumer_id)  
+            # ConsumerMetadata.incrementOffset(topic_name,consumer_id) # send request to WM instead
+            ReadManager.inc_offset("write_manager:5000/consumer/offset", topic_name, consumer_id)
 
         return future.result()
         # return output of async req

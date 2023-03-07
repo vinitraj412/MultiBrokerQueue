@@ -40,6 +40,10 @@ class WriteManager:
         return partition_ids
 
     @staticmethod
+    def inc_offset(topic_name, consumer_id):
+        ConsumerMetadata.incrementOffset(topic_name,consumer_id)
+
+    @staticmethod
     def getBalancedPartition(topic_name):
         # active_brokers = BrokerMetadata.get_active_brokers()
 
@@ -73,6 +77,17 @@ class WriteManager:
         producer_id = str(uuid.uuid4())
         ProducerMetadata.registerProducer(producer_id, topic_name)
         return producer_id
+    
+    def register_consumer(self, topic_name, partition_id=None):
+        if partition_id is None:
+            partition_id = self.getBalancedPartition(topic_name)
+            if partition_id == -1:
+                print("No partitions found")
+                return -1
+
+        consumer_id=str(uuid.uuid4())
+        ConsumerMetadata.registerConsumer(consumer_id=consumer_id, topic_name=topic_name, partition_id=partition_id)
+        return consumer_id
 
     # register_broker(broker_id) -> broker_id
     #   {broker gives its broker_id if it restarts after failure, else supply broker_id}

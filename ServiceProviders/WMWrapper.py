@@ -84,6 +84,22 @@ def register_producer():
 		response["producer_id"] = status
 	return response
 
+@app.route("/consumer/register", methods=["POST"])
+def register_consumer():
+	dict = request.get_json()
+	topic = (dict['topic_name'])
+	partition_id = dict.get('partition_id', None)
+	status = WriteManager.register_consumer(topic, partition_id)
+
+	response = {}
+	if isinstance(status, int):
+		response["status"] = "Failure"
+		response["message"] = f"Consumer failed to register for topic {topic}."
+	else:
+		response["status"] = "Success"
+		response["consumer_id"] = status
+	return response
+
 @app.route("/broker/receive_beat", methods=["POST"])
 def receive_beat():
 	req = request.get_json()
@@ -124,6 +140,20 @@ def enqueue():
 
 	response = WriteManager.enqueue(producer_id=producer_id, partition_id=partition_id, message=message)
 	
+	return response
+
+@app.route("/consumer/offset", methods=["POST"])
+def increment_offset():
+	dict = request.get_json()
+	# topic = (dict['topic_name'])
+	# producer_id = str(dict['producer_id'])
+	topic_name = dict["topic_name"]
+	consumer_id = dict["consumer_id"]
+	# partition_id = dict.get('partition_id', None)
+	# message = dict['message']
+	WriteManager.inc_offset(topic_name, consumer_id)
+	# response = WriteManager.enqueue(producer_id=producer_id, partition_id=partition_id, message=message)
+	response = {"message" :  "Success"}
 	return response
 
 
