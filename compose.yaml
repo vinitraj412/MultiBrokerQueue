@@ -26,7 +26,8 @@ services:
         entrypoint: python
         command: ./ServiceProviders/WMWrapper.py
         depends_on:
-            - main_db_three
+            main_db_three:
+                    condition: service_healthy
         environment:
             - DB_NAME=manager_db
             - HOST_NAME=main_db_three
@@ -43,7 +44,8 @@ services:
         command: ./ServiceProviders/RMWrapper.py
         hostname: read_manager_one
         depends_on:
-            - main_db_one
+            main_db_one:
+                    condition: service_healthy
         environment:
             - DB_NAME=manager_db
             - HOST_NAME=main_db_one
@@ -61,7 +63,8 @@ services:
         command: ./ServiceProviders/RMWrapper.py
         hostname: read_manager_two
         depends_on:
-            - main_db_two
+            main_db_two:
+                    condition: service_healthy
         environment:
             - DB_NAME=manager_db
             - HOST_NAME=main_db_two
@@ -76,7 +79,8 @@ services:
         restart: always
         hostname: broker_one
         depends_on:
-            - db_one
+            db_one:
+                    condition: service_healthy
         environment:
             - DB_NAME=db_one
         entrypoint: python
@@ -90,7 +94,8 @@ services:
         restart: always
         hostname: broker_two
         depends_on:
-            - db_two
+            db_two:
+                    condition: service_healthy
         environment:
             - DB_NAME=db_two
         entrypoint: python
@@ -104,7 +109,8 @@ services:
         restart: always
         hostname: broker_three
         depends_on:
-            - db_three
+            db_three:
+                    condition: service_healthy
         environment:
             - DB_NAME=db_three
         entrypoint: python
