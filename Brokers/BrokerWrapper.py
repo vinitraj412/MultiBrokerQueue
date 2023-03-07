@@ -14,11 +14,11 @@ import os
 app = Flask(__name__)
 DATABASE_CONFIG = {
     'driver': 'postgresql',
-    'host': os.getenv('DB_NAME'),
+    'host': '0.0.0.0',
     'user': 'postgres',
     'password': 'postgres',
-    'port': 5432,
-    'dbname': os.getenv('DB_NAME')
+    'port': 50051,
+    'dbname': 'postgres'
 }
 db_url = f"{DATABASE_CONFIG['driver']}://{DATABASE_CONFIG['user']}:{DATABASE_CONFIG['password']}@{DATABASE_CONFIG['host']}:{DATABASE_CONFIG['port']}/{DATABASE_CONFIG['dbname']}"
 app.config['SQLALCHEMY_DATABASE_URI'] = db_url
@@ -147,11 +147,11 @@ def cmdline_args():
     # create parser
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--port", help="port number",
-                        type=int, default=5000)
+                        type=int, default=50001)
     parser.add_argument("-mIP", "--managerIP",
-                        help="write manager IP address", type=str, default="write_manager")
+                        help="write manager IP address", type=str, default="0.0.0.0")
     parser.add_argument("-mPort", "--managerPort",
-                        help="write manager port number", type=int, default=5000)
+                        help="write manager port number", type=int, default=8080)
     # parser.add_argument("-mIP", "--managerIP",
     #                     help="read manager IP address", type=str, default="read_manager")
     # parser.add_argument("-mPort", "--managerPort",
