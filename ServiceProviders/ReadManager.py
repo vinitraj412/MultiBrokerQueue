@@ -83,12 +83,11 @@ class ReadManager:
         broker_endpoint = BrokerMetadata.getBrokerEndpoint(broker_id)
         broker_endpoint = broker_endpoint + "/consumer/consume"
 
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(ReadManager.send_request, broker_endpoint, topic_name, partition_id,consumer_id, offset)
+        res= ReadManager.send_request( broker_endpoint, topic_name, partition_id,consumer_id, offset)
             # ConsumerMetadata.incrementOffset(topic_name,consumer_id) # send request to WM instead
-            ReadManager.inc_offset("http://write_manager:5000/consumer/offset", topic_name, consumer_id,partition_id)
+        ReadManager.inc_offset("http://write_manager:5000/consumer/offset", topic_name, consumer_id,partition_id)
 
-        return future.result()
+        return res
         # return output of async req
   
     # list_topics()

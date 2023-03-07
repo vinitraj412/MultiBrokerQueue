@@ -109,7 +109,7 @@ def size():
         if status == -1:
             response["message"] = f"Topic {topic} does not exist."
         elif status == -2:
-            response["message"] = f"Consumer is not registered for topic {topic}."
+            response["message"] = f"No message in topic {topic}."
 
     return response
 

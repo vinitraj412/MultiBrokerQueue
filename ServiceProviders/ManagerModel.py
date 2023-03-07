@@ -235,6 +235,8 @@ class ConsumerMetadata(db.Model):
 
     @staticmethod
     def incrementOffset(consumer_id, topic_name, partition_id):
+        import sys
+        print(f" BBBBBBBBBBBBBBB {consumer_id} {topic_name} {partition_id}", file=sys.stderr)
         part_metadata = PartitionMetadata.getPartition_Metadata(topic_name, partition_id)
         entry = ConsumerMetadata.query.filter_by(consumer_id=consumer_id, partition_metadata=part_metadata).first()
         entry.offset += 1
