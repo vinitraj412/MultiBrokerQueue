@@ -133,6 +133,7 @@ class WriteManager:
 
     @staticmethod
     def enqueue(producer_id, message, partition_id = None):
+        # TODO handle wrong partition id case
         topic_name = ProducerMetadata.getTopic(producer_id)
         if not ProducerMetadata.topic_registered(producer_id, topic_name):
             return {"status": "Failure", "message": "Producer not registered for this topic"}   

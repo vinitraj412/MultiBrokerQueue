@@ -178,7 +178,7 @@ if __name__ == '__main__':
         if response != -1:
             broker_id = response
             break
-        sleep(randint(1, 3))
+        sleep(randint(1, 3)/100)
 
     # with ThreadPoolExecutor(max_workers=1) as executor:
     #     executor.submit(broker.heartbeat, args.managerIP, args.managerPort, broker_id)
