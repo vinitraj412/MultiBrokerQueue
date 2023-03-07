@@ -37,8 +37,9 @@ Send a periodic heartbeat to the manager to indicate the availability of the Rea
 
 Additionally, the Flask interface includes functions to handle HTTP requests for each of the above operations. The interface provides endpoints to handle GET requests for listing topics, listing partitions, and retrieving the size of a topic for a given consumer. It also includes an endpoint for dequeuing messages via a GET request. Lastly, the interface includes a command line argument parser to allow the Flask application to be run with different configurations.
 
-
 All the three managers (one write, two read) are synchronised as they are accessing databases that are automatically synchronised. 
+
+
 
 ## Database
 
@@ -76,8 +77,3 @@ From the original design which consisted of four models, the current design choi
 
 -TopicMessages
 	contains: message_id, topic_name, producer_id, message {supports enqueue, dequeue, size}
-
-
-
-
-
