@@ -147,6 +147,10 @@ class PartitionMetadata(db.Model):
     def getBrokerID(topic_name, partition_id):
         return PartitionMetadata.query.filter_by(topic_name=topic_name, partition_id=partition_id).first().broker_id
 
+    @staticmethod
+    def checkPartition(topic_name, partition_id):
+        return PartitionMetadata.query.filter_by(topic_name=topic_name, partition_id=partition_id).count() > 0
+
 # Table : Messages (used for finding which broker has a certain message with an offset)
 # [topic_name, id(increasing int), broker_id, partition_id]
 # id is a global counter for all messages

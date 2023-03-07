@@ -20,6 +20,16 @@ class WriteManager:
     # def create_topic(topic_name): may be Partion is also needed
     @staticmethod
     def receive_heartbeat(broker_id):
+        # check if that broker was inactive
+        if not BrokerMetadata.checkBroker(broker_id):
+            # update the partition metadata for that broker
+            topics = PartitionMetadata.listTopics()
+            for topic in topics:
+                # check if partition exists for that broker 
+                if not PartitionMetadata.checkPartition(topic, broker_id):
+                    # create a new partition
+                    PartitionMetadata.createPartition(topic, broker_id)
+
         BrokerMetadata.updateTimeStamp(broker_id)
 
     @staticmethod
