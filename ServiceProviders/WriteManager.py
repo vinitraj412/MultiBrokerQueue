@@ -159,10 +159,9 @@ class WriteManager:
         broker_id = PartitionMetadata.getBrokerID(topic_name, partition_id)
         broker_endpoint = BrokerMetadata.getBrokerEndpoint(broker_id)
         broker_endpoint = broker_endpoint + "/producer/produce"
-        with ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(WriteManager.send_request, broker_endpoint, topic_name, partition_id, message)
-            response = future.result()
-        
+        response = WriteManager.send_request( broker_endpoint, topic_name, partition_id, message)
+        if response['status']=='Success':
+            PartitionMetadata.increaseSize(topic_name=topic_name,partition_id=partition_id)
         return response
         # return WriteManager.send_request(broker_endpoint, topic_name, partition_id, message)
   

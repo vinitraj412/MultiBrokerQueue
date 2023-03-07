@@ -74,7 +74,7 @@ def partitions():
 def dequeue():
 	dict = request.get_json()
 	topic = (dict['topic_name'])
-	consumer_id = uuid.UUID(dict['consumer_id'])
+	consumer_id = str(dict['consumer_id'])
 	partition_id = dict.get('partition_id', None)		
     # if topic exists send consumer id
 	response = ReadManager.dequeue(topic_name=topic, consumer_id=consumer_id, partition_id=partition_id)

@@ -67,7 +67,7 @@ def enqueue():
 def dequeue():
     dict = request.get_json()
     topic = (dict['topic'])
-    consumer_id = uuid.UUID(dict['consumer_id'])
+    consumer_id = str(dict['consumer_id'])
     partition_id = (dict['partition_id'])
     offset = (dict['offset'])
     # if topic exists send consumer id
