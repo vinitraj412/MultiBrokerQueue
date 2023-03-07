@@ -11,7 +11,7 @@ import argparse
 app = Flask(__name__)
 DATABASE_CONFIG = {
     'driver': 'postgresql',
-    'host': os.getenv('DB_NAME'),
+    'host': os.getenv('HOST_NAME'),
     'user': 'postgres',
     'password': 'postgres',
     'port': 5432,

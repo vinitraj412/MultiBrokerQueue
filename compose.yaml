@@ -29,6 +29,7 @@ services:
             - main_db_three
         environment:
             - DB_NAME=manager_db
+            - HOST_NAME=main_db_three
 
     read_manager_one:
         image: mbq:latest
@@ -36,7 +37,6 @@ services:
         deploy:
             replicas: 1
         restart: always
-
         networks:       
             - custom
         entrypoint: python
@@ -46,6 +46,7 @@ services:
             - main_db_one
         environment:
             - DB_NAME=manager_db
+            - HOST_NAME=main_db_one
 
     read_manager_two:
         image: mbq:latest
@@ -63,6 +64,8 @@ services:
             - main_db_two
         environment:
             - DB_NAME=manager_db
+            - HOST_NAME=main_db_two
+
     
     broker_one:
         image: mbq:latest
