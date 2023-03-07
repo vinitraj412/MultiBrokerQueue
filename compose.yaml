@@ -18,6 +18,7 @@ services:
         image: mbq:latest
         container_name: write_manager
         hostname: write_manager
+        restart: always
         deploy: 
             replicas: 1
         networks:       
@@ -34,6 +35,8 @@ services:
         container_name: read_manager_one
         deploy:
             replicas: 1
+        restart: always
+
         networks:       
             - custom
         entrypoint: python
@@ -49,6 +52,8 @@ services:
         container_name: read_manager_two
         deploy:
             replicas: 1
+        restart: always
+
         networks:       
             - custom
         entrypoint: python
@@ -108,10 +113,17 @@ services:
         restart: always
         volumes:
                 - ../data/main_db_one:/var/lib/postgresql/data
+                - ./our-postgres.conf:/etc/postgresql/postgresql.conf
+                - ./our-pg_hba.conf:/etc/postgresql/pg_hba.conf
         hostname: main_db_one
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
                 - 'POSTGRES_DB=main_db_one'
+        healthcheck:
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname ${POSTGRES_DB}'"]
+            interval: 10s
+            timeout: 3s
+            retries: 3
         networks:       
             - custom
 
@@ -121,10 +133,17 @@ services:
         restart: always
         volumes:
                 - ../data/main_db_two:/var/lib/postgresql/data
+                - ./our-postgres.conf:/etc/postgresql/postgresql.conf
+                - ./our-pg_hba.conf:/etc/postgresql/pg_hba.conf
         hostname: main_db_two
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
                 - 'POSTGRES_DB=main_db_two'
+        healthcheck:
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname ${POSTGRES_DB}'"]
+            interval: 10s
+            timeout: 3s
+            retries: 3
         networks:       
             - custom
 
@@ -135,10 +154,17 @@ services:
         restart: always
         volumes:
                 - ../data/main_db_three:/var/lib/postgresql/data
+                - ./our-postgres.conf:/etc/postgresql/postgresql.conf
+                - ./our-pg_hba.conf:/etc/postgresql/pg_hba.conf
         hostname: main_db_three
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
                 - 'POSTGRES_DB=main_db_three'
+        healthcheck:
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname ${POSTGRES_DB}'"]
+            interval: 10s
+            timeout: 3s
+            retries: 3
         networks:       
             - custom
 
@@ -152,6 +178,11 @@ services:
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
                 - 'POSTGRES_DB=db_one'
+        healthcheck:
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname ${POSTGRES_DB}'"]
+            interval: 10s
+            timeout: 3s
+            retries: 3
         networks:       
             - custom
         
@@ -165,6 +196,11 @@ services:
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
                 - 'POSTGRES_DB=db_two'
+        healthcheck:
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname ${POSTGRES_DB}'"]
+            interval: 10s
+            timeout: 3s
+            retries: 3
         networks:       
             - custom
         
@@ -178,6 +214,11 @@ services:
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
                 - 'POSTGRES_DB=db_three'
+        healthcheck:
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname ${POSTGRES_DB}'"]
+            interval: 10s
+            timeout: 3s
+            retries: 3
         networks:       
             - custom
         

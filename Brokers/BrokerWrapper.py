@@ -182,11 +182,12 @@ if __name__ == '__main__':
 
     # with ThreadPoolExecutor(max_workers=1) as executor:
     #     executor.submit(broker.heartbeat, args.managerIP, args.managerPort, broker_id)
-    # executor = Thread(target=broker.heartbeat,args=(args.managerIP, args.managerPort, broker_id))
-    # executor.daemon = True
-    # executor.start()
+    executor = Thread(target=broker.heartbeat,args=(args.managerIP, args.managerPort, broker_id))
+    executor.daemon = True
+    executor.start()
+    app.run(host='0.0.0.0',port=args.port)
+
     # TODO remove reloader = false if needed
     # app.run(debug=True, port=args.port, use_reloader=False)
-    app.run(host='0.0.0.0',port=args.port)
     # executor.join()
     # TODO: create a thread that periodically sends heartbeat to manager
