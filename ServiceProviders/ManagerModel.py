@@ -130,6 +130,8 @@ class PartitionMetadata(db.Model):
 
     @staticmethod
     def getPartition_Metadata(topic_name, partition_id):
+        import sys
+        print(f" AAAAAAAAAAAAAAAAAAAAA {topic_name} {partition_id}", file=sys.stderr)
         return PartitionMetadata.query.filter_by(topic_name=topic_name, partition_id=partition_id).first().id
     
     @staticmethod

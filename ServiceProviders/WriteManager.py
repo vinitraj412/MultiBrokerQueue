@@ -56,7 +56,7 @@ class WriteManager:
 
     @staticmethod
     def inc_offset(topic_name, consumer_id,partition_id):
-        ConsumerMetadata.incrementOffset(topic_name,consumer_id,partition_id)
+        ConsumerMetadata.incrementOffset(consumer_id,topic_name,partition_id)
 
     @staticmethod
     def getBalancedPartition(topic_name):
