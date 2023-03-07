@@ -45,11 +45,15 @@ class BrokerMetadata(db.Model):
     @staticmethod
     def checkBroker(broker_id) -> bool:
         broker = BrokerMetadata.query.filter_by(broker_id=broker_id).first()
-        return True if ((datetime.utcnow() - broker.last_beat_timestamp).microseconds < 300000) else False
+        return True 
+    #TODO
+    # if ((datetime.utcnow() - broker.last_beat_timestamp).microseconds < 300000) else False
 
     @staticmethod
     def get_active_brokers() -> list:
-        return [broker.broker_id for broker in BrokerMetadata.query.all() if (datetime.utcnow() - broker.last_beat_timestamp).microseconds < 300000]
+        return [broker.broker_id for broker in BrokerMetadata.query.all()]
+        # TODO (b-a).seconds * 1000000 + (b-a).microseconds
+        # if (datetime.utcnow() - broker.last_beat_timestamp).microseconds < 300000]
 
     @staticmethod
     def getBrokerEndpoint(broker_id: int) -> str:
