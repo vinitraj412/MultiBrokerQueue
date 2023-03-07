@@ -223,7 +223,10 @@ class ConsumerMetadata(db.Model):
     @staticmethod
     def getOffset(topic_name, consumer_id, partition_id):
         part_id = PartitionMetadata.getPartition(topic_name, partition_id)
-        return ConsumerMetadata.query.filter_by(consumer_id=consumer_id, partition_metadata=part_id).first().offset
+        obj= ConsumerMetadata.query.filter_by(consumer_id=consumer_id, partition_metadata=part_id).first()
+        if obj is None:
+            return 0
+        return obj.offset
 
     @staticmethod
     def incrementOffset(consumer_id, topic_name, partition_id):

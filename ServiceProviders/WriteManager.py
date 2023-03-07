@@ -18,6 +18,7 @@ class WriteManager:
     
     # create_topic(topic_name)
     # def create_topic(topic_name): may be Partion is also needed
+    @staticmethod
     def receive_heartbeat(broker_id):
         BrokerMetadata.updateTimeStamp(broker_id)
 
@@ -67,10 +68,12 @@ class WriteManager:
         return WriteManager.getBalancedPartition(topic_name)
 
     # list_partitions(topic_name)
+    @staticmethod
     def list_partitions(topic_name):
         return PartitionMetadata.listPartitions(topic_name)
     # returns partitioned list 
-
+    
+    @staticmethod
     def register_producer(topic_name):
         # check for existence of topic_name and partition_id
         # TODO: complete this
@@ -78,9 +81,10 @@ class WriteManager:
         ProducerMetadata.registerProducer(producer_id, topic_name)
         return producer_id
     
-    def register_consumer(self, topic_name, partition_id=None):
+    @staticmethod
+    def register_consumer(topic_name, partition_id=None):
         if partition_id is None:
-            partition_id = self.getBalancedPartition(topic_name)
+            partition_id = WriteManager.getBalancedPartition(topic_name)
             if partition_id == -1:
                 print("No partitions found")
                 return -1
@@ -91,6 +95,7 @@ class WriteManager:
 
     # register_broker(broker_id) -> broker_id
     #   {broker gives its broker_id if it restarts after failure, else supply broker_id}
+    @staticmethod
     def register_broker(endpoint):
         # todo: when adding a broker get it in sync with current topics and create partitions for it.
         prev = BrokerMetadata.getBrokerId(endpoint)
@@ -152,6 +157,7 @@ class WriteManager:
         # return WriteManager.send_request(broker_endpoint, topic_name, partition_id, message)
   
     # list_topics()
+    @staticmethod
     def list_topics():
         return PartitionMetadata.listTopics()
     

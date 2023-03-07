@@ -5,31 +5,8 @@ import requests
 from concurrent.futures import ThreadPoolExecutor
 
 class ReadManager:
-    def __init__(self, endpoint_list) -> None:
-        self.endpoint_list=endpoint_list
-    
-    # functions:
-
-    # send_beat() {regulary sends beat to load balanacer, other managers using separate thread}
-    
-    # def send_heartbeat(self,endpoint):
-    #     requests.post(endpoint,data="")
-
-    # def beat(self):
-    #     with ThreadPoolExecutor(len(self.endpoint_list)) as executor:
-    #         futures = [executor.submit(self.send_heartbeat, endpoint) for endpoint in self.endpoint_list]
-    
-
-    # def getBalancedPartition(self, topic_name):
-    #     partitions = self.list_partitions(topic_name)
-    #     if(len(partitions)==0):
-    #         return -1
-    #     # select partition with least number of consumers
-    #     partition_id = min(partitions,key=lambda x: ConsumerMetadata.getConsumerCount(topic_name,x))
-    #     return partition_id
-    
-    
-    def getHealthyPartition(self, topic_name, consumer_id):
+    @staticmethod
+    def getHealthyPartition( topic_name, consumer_id):
 
         # active_brokers = BrokerMetadata.get_active_brokers()
 
@@ -46,30 +23,19 @@ class ReadManager:
         
         return -1
     
-    # register_consumer(topic_name, parition_id = None) -> success ack
-
-    # def register_consumer(self, topic_name, partition_id=None):
-    #     if partition_id is None:
-    #         partition_id = self.getBalancedPartition(topic_name)
-    #         if partition_id == -1:
-    #             print("No partitions found")
-    #             return -1
-
-    #     consumer_id=str(uuid.uuid4())
-    #     ConsumerMetadata.registerConsumer(consumer_id=consumer_id, topic_name=topic_name, partition_id=partition_id)
-    #     return consumer_id
-    
-    def size(self,consumer_id,topic_name, partition_id=None):
+    @staticmethod
+    def size(consumer_id,topic_name, partition_id=None):
         if partition_id is None:
             # return size of all partitions
-            partitions = self.list_partitions(topic_name)
+            partitions = ReadManager.list_partitions(topic_name)
             size = 0
             for part_id in partitions:
                 size += PartitionMetadata.getSize(topic_name, part_id) - ConsumerMetadata.getOffset(topic_name, consumer_id, part_id)
             return size
         return PartitionMetadata.getSize(topic_name, partition_id) - ConsumerMetadata.getOffset(topic_name, consumer_id, partition_id)
 
-    def send_request(self, broker_endpoint, topic_name, partition_id, offset):
+    @staticmethod
+    def send_request(broker_endpoint, topic_name, partition_id, offset):
         data = {
             "topic_name": topic_name,
             "partition_id": partition_id,
@@ -78,7 +44,8 @@ class ReadManager:
         response = requests.get(broker_endpoint, data=data)
         return response.json()
     
-    def inc_offset(self, wm_endpoint, topic_name, consumer_id):
+    @staticmethod
+    def inc_offset(wm_endpoint, topic_name, consumer_id):
         data = {
             "topic_name": topic_name,
             "consumer_id": consumer_id
@@ -86,9 +53,10 @@ class ReadManager:
         response = requests.post(wm_endpoint, data=data)
         return response.json()
 
-    def dequeue(self, consumer_id, topic_name, partition_id=None):
+    @staticmethod
+    def dequeue(consumer_id, topic_name, partition_id=None):
         if partition_id is None:
-            partition_id = ReadManager.getHealthyPartition(self, topic_name, consumer_id)
+            partition_id = ReadManager.getHealthyPartition(topic_name, consumer_id)
             if partition_id == -1:
                 response_dict = {'status': 'Failure',
                                 'message': 'No healthy partitions found'}
@@ -101,7 +69,7 @@ class ReadManager:
         broker_endpoint = broker_endpoint + "/consumer/consume"
 
         with ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(self.send_request, broker_endpoint, topic_name, partition_id, offset)
+            future = executor.submit(ReadManager.send_request, broker_endpoint, topic_name, partition_id, offset)
             # ConsumerMetadata.incrementOffset(topic_name,consumer_id) # send request to WM instead
             ReadManager.inc_offset("write_manager:5000/consumer/offset", topic_name, consumer_id)
 
@@ -109,10 +77,12 @@ class ReadManager:
         # return output of async req
   
     # list_topics()
+    @staticmethod
     def list_topics():
         return PartitionMetadata.listTopics()
     
     # list_partitions(topic_name)    
+    @staticmethod
     def list_partitions(topic_name):
         return PartitionMetadata.listPartitions(topic_name)
 	
