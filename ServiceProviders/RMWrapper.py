@@ -54,6 +54,22 @@ def partitions():
 	
 	return response
 
+@app.route("/consumer/register", methods=["POST"])
+def register_consumer():
+	dict = request.get_json()
+	topic = (dict['topic_name'])
+	partition_id = dict.get('partition_id', None)
+	status = ReadManager.register_consumer(topic, partition_id)
+
+	response = {}
+	if isinstance(status, int):
+		response["status"] = "Failure"
+		response["message"] = f"Consumer failed to register for topic {topic}."
+	else:
+		response["status"] = "Success"
+		response["consumer_id"] = status
+	return response
+
 @app.route("/consumer/consume", methods=["GET"])
 def dequeue():
 	dict = request.get_json()
