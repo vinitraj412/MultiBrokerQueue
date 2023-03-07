@@ -120,7 +120,7 @@ services:
                 - 'POSTGRES_PASSWORD=postgres'
                 - 'POSTGRES_DB=main_db_one'
         healthcheck:
-            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname ${POSTGRES_DB}'"]
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname main_db_one'"]
             interval: 10s
             timeout: 3s
             retries: 3
@@ -140,7 +140,7 @@ services:
                 - 'POSTGRES_PASSWORD=postgres'
                 - 'POSTGRES_DB=main_db_two'
         healthcheck:
-            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname ${POSTGRES_DB}'"]
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname main_db_two'"]
             interval: 10s
             timeout: 3s
             retries: 3
@@ -161,7 +161,7 @@ services:
                 - 'POSTGRES_PASSWORD=postgres'
                 - 'POSTGRES_DB=main_db_three'
         healthcheck:
-            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname ${POSTGRES_DB}'"]
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname main_db_three'"]
             interval: 10s
             timeout: 3s
             retries: 3
@@ -179,7 +179,7 @@ services:
                 - 'POSTGRES_PASSWORD=postgres'
                 - 'POSTGRES_DB=db_one'
         healthcheck:
-            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname ${POSTGRES_DB}'"]
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname db_one'"]
             interval: 10s
             timeout: 3s
             retries: 3
@@ -197,7 +197,7 @@ services:
                 - 'POSTGRES_PASSWORD=postgres'
                 - 'POSTGRES_DB=db_two'
         healthcheck:
-            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname ${POSTGRES_DB}'"]
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname db_two'"]
             interval: 10s
             timeout: 3s
             retries: 3
@@ -215,7 +215,7 @@ services:
                 - 'POSTGRES_PASSWORD=postgres'
                 - 'POSTGRES_DB=db_three'
         healthcheck:
-            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname ${POSTGRES_DB}'"]
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname db_three'"]
             interval: 10s
             timeout: 3s
             retries: 3
