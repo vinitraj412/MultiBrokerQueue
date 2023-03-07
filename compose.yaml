@@ -1,111 +1,111 @@
 version: '3.9'
 services:
-#     reverse_proxy:
-#         image: nginx
-#         container_name: reverse_proxy
-#         volumes:
-#             - ./nginx.conf:/etc/nginx/nginx.conf
-#         ports:
-#             - 8080:80
-#         deploy:
-#         networks:       
-#             - custom
-#         depends_on:
-#             - read_manager_one
-#             - read_manager_two
+    reverse_proxy:
+        image: nginx
+        container_name: reverse_proxy
+        volumes:
+            - ./nginx.conf:/etc/nginx/nginx.conf
+        ports:
+            - 8080:80
+        deploy:
+        networks:       
+            - custom
+        depends_on:
+            - read_manager_one
+            - read_manager_two
     
-#     write_manager:
-#         image: mbq:latest
-#         container_name: write_manager
-#         hostname: write_manager
-#         restart: always
-#         deploy: 
-#             replicas: 1
-#         networks:       
-#             - custom
-#         entrypoint: python
-#         command: ./ServiceProviders/WMWrapper.py
-#         depends_on:
-#             - main_db_three
-#         environment:
-#             - DB_NAME=main_db_three
+    write_manager:
+        image: mbq:latest
+        container_name: write_manager
+        hostname: write_manager
+        restart: always
+        deploy: 
+            replicas: 1
+        networks:       
+            - custom
+        entrypoint: python
+        command: ./ServiceProviders/WMWrapper.py
+        depends_on:
+            - main_db_three
+        environment:
+            - DB_NAME=manager_db
 
-#     read_manager_one:
-#         image: mbq:latest
-#         container_name: read_manager_one
-#         deploy:
-#             replicas: 1
-#         restart: always
+    read_manager_one:
+        image: mbq:latest
+        container_name: read_manager_one
+        deploy:
+            replicas: 1
+        restart: always
 
-#         networks:       
-#             - custom
-#         entrypoint: python
-#         command: ./ServiceProviders/RMWrapper.py
-#         hostname: read_manager_one
-#         depends_on:
-#             - main_db_one
-#         environment:
-#             - DB_NAME=main_db_one
+        networks:       
+            - custom
+        entrypoint: python
+        command: ./ServiceProviders/RMWrapper.py
+        hostname: read_manager_one
+        depends_on:
+            - main_db_one
+        environment:
+            - DB_NAME=manager_db
 
-#     read_manager_two:
-#         image: mbq:latest
-#         container_name: read_manager_two
-#         deploy:
-#             replicas: 1
-#         restart: always
+    read_manager_two:
+        image: mbq:latest
+        container_name: read_manager_two
+        deploy:
+            replicas: 1
+        restart: always
 
-#         networks:       
-#             - custom
-#         entrypoint: python
-#         command: ./ServiceProviders/RMWrapper.py
-#         hostname: read_manager_two
-#         depends_on:
-#             - main_db_two
-#         environment:
-#             - DB_NAME=main_db_two
+        networks:       
+            - custom
+        entrypoint: python
+        command: ./ServiceProviders/RMWrapper.py
+        hostname: read_manager_two
+        depends_on:
+            - main_db_two
+        environment:
+            - DB_NAME=manager_db
     
-#     broker_one:
-#         image: mbq:latest
-#         build: ./broker
-#         container_name: broker_one
-#         networks:       
-#             - custom
-#         restart: always
-#         hostname: broker_one
-#         depends_on:
-#             - db_one
-#         environment:
-#             - DB_NAME=db_one
-#         entrypoint: python
-#         command: ./Brokers/BrokerWrapper.py
+    broker_one:
+        image: mbq:latest
+        build: ./broker
+        container_name: broker_one
+        networks:       
+            - custom
+        restart: always
+        hostname: broker_one
+        depends_on:
+            - db_one
+        environment:
+            - DB_NAME=db_one
+        entrypoint: python
+        command: ./Brokers/BrokerWrapper.py
 
-#     broker_two: 
-#         image: mbq:latest
-#         container_name: broker_two
-#         networks:       
-#             - custom
-#         restart: always
-#         hostname: broker_two
-#         depends_on:
-#             - db_two
-#         environment:
-#             - DB_NAME=db_two
-#         entrypoint: python
-#         command: ./Brokers/BrokerWrapper.py
+    broker_two: 
+        image: mbq:latest
+        container_name: broker_two
+        networks:       
+            - custom
+        restart: always
+        hostname: broker_two
+        depends_on:
+            - db_two
+        environment:
+            - DB_NAME=db_two
+        entrypoint: python
+        command: ./Brokers/BrokerWrapper.py
     
-#     broker_three: 
-#         image: mbq:latest
-#         container_name: broker_three
-#         networks:       
-#             - custom
-#         restart: always
-#         hostname: broker_three
-#         depends_on:
-#             - db_three
-#         environment:
-#             - DB_NAME=db_three
-#         entrypoint: python
-#         command: ./Brokers/BrokerWrapper.py
+    broker_three: 
+        image: mbq:latest
+        container_name: broker_three
+        networks:       
+            - custom
+        restart: always
+        hostname: broker_three
+        depends_on:
+            - db_three
+        environment:
+            - DB_NAME=db_three
+        entrypoint: python
+        command: ./Brokers/BrokerWrapper.py
 
     main_db_one: 
         image: postgres:13
@@ -115,12 +115,13 @@ services:
                 - ../data/main_db_one:/var/lib/postgresql/data
                 - ./our-postgres.conf:/etc/postgresql/postgresql.conf
                 - ./our-pg_hba.conf:/etc/postgresql/pg_hba.conf
+                - ./init-db-read.sh:/docker-entrypoint-initdb.d/init-db.sh
         hostname: main_db_one
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
-                - 'POSTGRES_DB=main_db_one'
+                - 'POSTGRES_DB=manager_db'
         healthcheck:
-            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname main_db_one'"]
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname manager_db'"]
             interval: 10s
             timeout: 3s
             retries: 3
@@ -137,12 +138,14 @@ services:
                 - ../data/main_db_two:/var/lib/postgresql/data
                 - ./our-postgres.conf:/etc/postgresql/postgresql.conf
                 - ./our-pg_hba.conf:/etc/postgresql/pg_hba.conf
+                - ./init-db-read.sh:/docker-entrypoint-initdb.d/init-db.sh
+
         hostname: main_db_two
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
-                - 'POSTGRES_DB=main_db_two'
+                - 'POSTGRES_DB=manager_db'
         healthcheck:
-            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname main_db_two'"]
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname manager_db'"]
             interval: 10s
             timeout: 3s
             retries: 3
@@ -170,68 +173,70 @@ services:
         hostname: main_db_three
         environment:
                 - 'POSTGRES_PASSWORD=postgres'
-                - 'POSTGRES_DB=main_db_three'
+                - 'POSTGRES_DB=manager_db'
+        ports:
+            - 5432:5432
         healthcheck:
-            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname main_db_three'"]
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname manager_db'"]
             interval: 10s
             timeout: 3s
             retries: 3
         networks:       
             - custom
 
-#     db_one:
-#         image: postgres:13
-#         container_name: db_one
-#         restart: always
-#         volumes:
-#                 - ../data/db_one:/var/lib/postgresql/data
-#         hostname: db_one
-#         environment:
-#                 - 'POSTGRES_PASSWORD=postgres'
-#                 - 'POSTGRES_DB=db_one'
-#         healthcheck:
-#             test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname db_one'"]
-#             interval: 10s
-#             timeout: 3s
-#             retries: 3
-#         networks:       
-#             - custom
+    db_one:
+        image: postgres:13
+        container_name: db_one
+        restart: always
+        volumes:
+                - ../data/db_one:/var/lib/postgresql/data
+        hostname: db_one
+        environment:
+                - 'POSTGRES_PASSWORD=postgres'
+                - 'POSTGRES_DB=db_one'
+        healthcheck:
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname db_one'"]
+            interval: 10s
+            timeout: 3s
+            retries: 3
+        networks:       
+            - custom
         
-#     db_two:
-#         image: postgres:13
-#         container_name: db_two
-#         restart: always
-#         volumes:
-#                 - ../data/db_two:/var/lib/postgresql/data
-#         hostname: db_two
-#         environment:
-#                 - 'POSTGRES_PASSWORD=postgres'
-#                 - 'POSTGRES_DB=db_two'
-#         healthcheck:
-#             test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname db_two'"]
-#             interval: 10s
-#             timeout: 3s
-#             retries: 3
-#         networks:       
-#             - custom
+    db_two:
+        image: postgres:13
+        container_name: db_two
+        restart: always
+        volumes:
+                - ../data/db_two:/var/lib/postgresql/data
+        hostname: db_two
+        environment:
+                - 'POSTGRES_PASSWORD=postgres'
+                - 'POSTGRES_DB=db_two'
+        healthcheck:
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname db_two'"]
+            interval: 10s
+            timeout: 3s
+            retries: 3
+        networks:       
+            - custom
         
-#     db_three:
-#         image: postgres:13
-#         container_name: db_three
-#         restart: always
-#         volumes:
-#                 - ../data/db_three:/var/lib/postgresql/data
-#         hostname: db_three
-#         environment:
-#                 - 'POSTGRES_PASSWORD=postgres'
-#                 - 'POSTGRES_DB=db_three'
-#         healthcheck:
-#             test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname db_three'"]
-#             interval: 10s
-#             timeout: 3s
-#             retries: 3
-#         networks:       
-#             - custom
+    db_three:
+        image: postgres:13
+        container_name: db_three
+        restart: always
+        volumes:
+                - ../data/db_three:/var/lib/postgresql/data
+        hostname: db_three
+        environment:
+                - 'POSTGRES_PASSWORD=postgres'
+                - 'POSTGRES_DB=db_three'
+        healthcheck:
+            test: ["CMD-SHELL", "sh -c 'pg_isready -U postgres --dbname db_three'"]
+            interval: 10s
+            timeout: 3s
+            retries: 3
+        networks:       
+            - custom
         
 networks:
     custom:
