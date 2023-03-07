@@ -72,7 +72,6 @@ services:
     
     broker_one:
         image: mbq:latest
-        build: ./broker
         container_name: broker_one
         networks:       
             - custom

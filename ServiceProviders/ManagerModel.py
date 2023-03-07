@@ -45,15 +45,18 @@ class BrokerMetadata(db.Model):
     @staticmethod
     def checkBroker(broker_id) -> bool:
         broker = BrokerMetadata.query.filter_by(broker_id=broker_id).first()
-        return True 
-    #TODO
+        return BrokerMetadata.isActiveBroker(broker)
     # if ((datetime.utcnow() - broker.last_beat_timestamp).microseconds < 300000) else False
 
     @staticmethod
     def get_active_brokers() -> list:
-        return [broker.broker_id for broker in BrokerMetadata.query.all()]
+        return [broker.broker_id for broker in BrokerMetadata.query.all() if BrokerMetadata.isActiveBroker(broker)]
         # TODO (b-a).seconds * 1000000 + (b-a).microseconds
         # if (datetime.utcnow() - broker.last_beat_timestamp).microseconds < 300000]
+
+    @staticmethod
+    def isActiveBroker(broker) -> bool:
+        return (datetime.utcnow() - broker.last_beat_timestamp).total_seconds() < 0.3
 
     @staticmethod
     def getBrokerEndpoint(broker_id: int) -> str:
@@ -116,13 +119,14 @@ class PartitionMetadata(db.Model):
 
     @staticmethod
     def listTopics():
+        print(PartitionMetadata.query.all())
         query = [partition.topic_name for partition in PartitionMetadata.query.all()]
         return list(set(query))
 
     @staticmethod
     def listPartitions(topic_name):
         query = [topic.partition_id for topic in PartitionMetadata.query.filter_by(
-            topic_name=topic_name).all()]
+            topic_name=topic_name).all() if BrokerMetadata.checkBroker(topic.broker_id)]
         return sorted(list(set(query)))
 
     @staticmethod
