@@ -66,7 +66,7 @@ def enqueue():
 @app.route("/consumer/consume", methods=["GET"])
 def dequeue():
     dict = request.get_json()
-    topic = (dict['topic'])
+    topic = (dict['topic_name'])
     consumer_id = str(dict['consumer_id'])
     partition_id = (dict['partition_id'])
     offset = (dict['offset'])
@@ -93,7 +93,7 @@ def dequeue():
 @app.route("/size", methods=["GET"])
 def size():
     dict = request.get_json()
-    topic = (dict['topic'])
+    topic = (dict['topic_name'])
     partition_id = (dict['partition_id'])
     offset = (dict['offset'])
 
