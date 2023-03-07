@@ -41,16 +41,17 @@ class ReadManager:
             "partition_id": partition_id,
             "offset": offset
         }
-        response = requests.get(broker_endpoint, data=data)
+        response = requests.get(broker_endpoint, json=data)
         return response.json()
     
     @staticmethod
-    def inc_offset(wm_endpoint, topic_name, consumer_id):
+    def inc_offset(wm_endpoint, topic_name, consumer_id,partition_id):
         data = {
             "topic_name": topic_name,
-            "consumer_id": consumer_id
+            "consumer_id": consumer_id,
+            "partition_id":partition_id
         }
-        response = requests.post(wm_endpoint, data=data)
+        response = requests.post(wm_endpoint, json=data)
         return response.json()
 
     @staticmethod
@@ -71,7 +72,7 @@ class ReadManager:
         with ThreadPoolExecutor(max_workers=1) as executor:
             future = executor.submit(ReadManager.send_request, broker_endpoint, topic_name, partition_id, offset)
             # ConsumerMetadata.incrementOffset(topic_name,consumer_id) # send request to WM instead
-            ReadManager.inc_offset("write_manager:5000/consumer/offset", topic_name, consumer_id)
+            ReadManager.inc_offset("http://write_manager:5000/consumer/offset", topic_name, consumer_id,partition_id)
 
         return future.result()
         # return output of async req

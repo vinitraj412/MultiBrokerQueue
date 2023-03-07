@@ -149,7 +149,7 @@ def increment_offset():
 	# producer_id = str(dict['producer_id'])
 	topic_name = dict["topic_name"]
 	consumer_id = dict["consumer_id"]
-	# partition_id = dict.get('partition_id', None)
+	partition_id = dict.get('partition_id', None)
 	# message = dict['message']
 	WriteManager.inc_offset(topic_name, consumer_id)
 	# response = WriteManager.enqueue(producer_id=producer_id, partition_id=partition_id, message=message)
