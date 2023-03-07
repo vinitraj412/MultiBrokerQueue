@@ -35,9 +35,10 @@ class ReadManager:
         return PartitionMetadata.getSize(topic_name, partition_id) - ConsumerMetadata.getOffset(topic_name, consumer_id, partition_id)
 
     @staticmethod
-    def send_request(broker_endpoint, topic_name, partition_id, offset):
+    def send_request(broker_endpoint, topic_name, partition_id, consumer_id, offset):
         data = {
             "topic_name": topic_name,
+            "consumer_id": consumer_id,
             "partition_id": partition_id,
             "offset": offset
         }
@@ -70,7 +71,7 @@ class ReadManager:
         broker_endpoint = broker_endpoint + "/consumer/consume"
 
         with ThreadPoolExecutor(max_workers=1) as executor:
-            future = executor.submit(ReadManager.send_request, broker_endpoint, topic_name, partition_id, offset)
+            future = executor.submit(ReadManager.send_request, broker_endpoint, topic_name, partition_id,consumer_id, offset)
             # ConsumerMetadata.incrementOffset(topic_name,consumer_id) # send request to WM instead
             ReadManager.inc_offset("http://write_manager:5000/consumer/offset", topic_name, consumer_id,partition_id)
 
