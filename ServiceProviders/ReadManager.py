@@ -85,8 +85,8 @@ class ReadManager:
 
         res= ReadManager.send_request( broker_endpoint, topic_name, partition_id,consumer_id, offset)
             # ConsumerMetadata.incrementOffset(topic_name,consumer_id) # send request to WM instead
-        ReadManager.inc_offset("http://write_manager:5000/consumer/offset", topic_name, consumer_id,partition_id)
-
+        if res['status']=='Success':
+            ReadManager.inc_offset("http://write_manager:5000/consumer/offset", topic_name, consumer_id,partition_id)
         return res
         # return output of async req
   
