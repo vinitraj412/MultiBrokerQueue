@@ -18,9 +18,9 @@ class WriteManager:
     
     # create_topic(topic_name)
     # def create_topic(topic_name): may be Partion is also needed
-    @staticmethod
-    def updateConsumerPartition(consumer_id,new_part_metadata):
-        ConsumerMetadata.updateConsumerPartition(consumer_id=consumer_id,new_partition_metadata=new_part_metadata)
+    # @staticmethod
+    # def updateConsumerPartition(consumer_id,new_part_metadata):
+    #     ConsumerMetadata.updateConsumerPartition(consumer_id=consumer_id,new_partition_metadata=new_part_metadata)
 
     @staticmethod
     def receive_heartbeat(broker_id):

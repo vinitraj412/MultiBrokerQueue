@@ -251,11 +251,11 @@ class ConsumerMetadata(db.Model):
         part_metadata = PartitionMetadata.getPartition_Metadata(topic_name, partition_id)
         return ConsumerMetadata.query.filter_by(partition_metadata=part_metadata).count()
 
-    @staticmethod
-    def updateConsumerPartition(consumer_id, new_partition_metadata):
-        entry=ConsumerMetadata.query.filter_by(consumer_id=consumer_id).first()
-        entry.partition_metadata=new_partition_metadata
-        db.session.commit()
+    # @staticmethod
+    # def updateConsumerPartition(consumer_id, new_partition_metadata):
+    #     entry=ConsumerMetadata.query.filter_by(consumer_id=consumer_id).first()
+    #     entry.partition_metadata=new_partition_metadata
+    #     db.session.commit()
     
     @staticmethod
     def checkConsumer(consumer_id, topic_name, partition_id):

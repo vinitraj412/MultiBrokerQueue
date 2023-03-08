@@ -55,14 +55,14 @@ class ReadManager:
         response = requests.post(wm_endpoint, json=data)
         return response.json()
 
-    @staticmethod
-    def update_consumer_part_req(wm_endpoint,consumer_id, new_part_metadata):
-        data = {
-            "consumer_id": consumer_id,
-            "new_part_metadata":new_part_metadata
-        }
-        response = requests.post(wm_endpoint, json=data)
-        return response.json()
+    # @staticmethod
+    # def update_consumer_part_req(wm_endpoint,consumer_id, new_part_metadata):
+    #     data = {
+    #         "consumer_id": consumer_id,
+    #         "new_part_metadata":new_part_metadata
+    #     }
+    #     response = requests.post(wm_endpoint, json=data)
+    #     return response.json()
 
     @staticmethod
     # TODO: is partition_id necessary isnt partition fixed when registering 
@@ -73,9 +73,9 @@ class ReadManager:
                 response_dict = {'status': 'Failure',
                                 'message': 'No healthy partitions found'}
                 return response_dict
-            new_part_metadata=PartitionMetadata.getPartition_Metadata(topic_name=topic_name,partition_id=partition_id)
+            # new_part_metadata=PartitionMetadata.getPartition_Metadata(topic_name=topic_name,partition_id=partition_id)
             # ConsumerMetadata.updateConsumerPartition(consumer_id=consumer_id,new_partition_metadata=new_part_metadata)
-            ReadManager.update_consumer_part_req("http://write_manager:5000/consumer/update_partition_metadata", consumer_id,new_part_metadata)
+            # ReadManager.update_consumer_part_req("http://write_manager:5000/consumer/update_partition_metadata", consumer_id,new_part_metadata)
 
         offset = ConsumerMetadata.getOffset(topic_name, consumer_id, partition_id)
         broker_id = PartitionMetadata.getBrokerID(topic_name, partition_id)
