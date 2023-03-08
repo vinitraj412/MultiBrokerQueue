@@ -46,6 +46,9 @@ class WriteManager:
         Returns:
             int: 0 if topic is created successfully, -1 otherwise
         """
+        # check if topic already exists
+        if topic_name in PartitionMetadata.listTopics():
+            return -1
         broker_ids = BrokerMetadata.get_active_brokers()
         partition_ids = []
         for broker_id in broker_ids:

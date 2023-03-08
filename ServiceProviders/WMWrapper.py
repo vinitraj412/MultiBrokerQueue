@@ -39,7 +39,11 @@ def topics():
 			
 		response = {}
 		partition_ids = WriteManager.create_topic(topic_name)
-		if len(partition_ids) > 0:
+		
+		if (isinstance(partition_ids, int)):
+			response["status"] = "Failure"
+			response["message"] = f"Topic {topic_name} already exists."
+		elif len(partition_ids) > 0:
 			response["status"] = "Success"
 			response["message"] = f"Topic {topic_name} created successfully!"
 		else:
