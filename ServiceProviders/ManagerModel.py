@@ -238,6 +238,10 @@ class ConsumerMetadata(db.Model):
         import sys
         print(f" BBBBBBBBBBBBBBB {consumer_id} {topic_name} {partition_id}", file=sys.stderr)
         part_metadata = PartitionMetadata.getPartition_Metadata(topic_name, partition_id)
+        
+        if not ConsumerMetadata.checkConsumer(consumer_id, topic_name, partition_id):
+            ConsumerMetadata.registerConsumer(consumer_id, topic_name, partition_id)
+            
         entry = ConsumerMetadata.query.filter_by(consumer_id=consumer_id, partition_metadata=part_metadata).first()
         entry.offset += 1
         db.session.commit()
@@ -252,6 +256,11 @@ class ConsumerMetadata(db.Model):
         entry=ConsumerMetadata.query.filter_by(consumer_id=consumer_id).first()
         entry.partition_metadata=new_partition_metadata
         db.session.commit()
+    
+    @staticmethod
+    def checkConsumer(consumer_id, topic_name, partition_id):
+        part_metadata = PartitionMetadata.getPartition_Metadata(topic_name, partition_id)
+        return ConsumerMetadata.query.filter_by(consumer_id=consumer_id, partition_metadata=part_metadata).count() > 0
 
 
 
