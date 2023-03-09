@@ -1,4 +1,4 @@
-from ...myqueue import MyProducer
+from ...ServiceConsumers import MyProducer
 import random
 import time
 

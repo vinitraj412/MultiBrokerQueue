@@ -1,4 +1,4 @@
-from ...myqueue import MyProducer
+from ...ServiceConsumers import MyProducer
 import random
 import time
 
@@ -14,7 +14,7 @@ with open("test_asgn1/producer_5.txt", "r") as f:
         topic = line.split('\t')[-1]
         message= '\t'.join(line.split('\t')[:-1])
         while True:
-            response = p5.send(topic_name=topic, message=message)
+            response = p5.send(topic_name=topic, message=message, partition_id= 0)
             if response is not None and response["status"] == "Success":
                 break
         time.sleep(random.uniform(0,1))

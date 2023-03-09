@@ -1,10 +1,12 @@
-from ...myqueue import MyConsumer
+from ...ServiceConsumers import MyConsumer
+from time import sleep
+import random
+
 HOST = "127.0.0.1"
 PORT = 5000
 base_url = f"http://{HOST}:{PORT}"
-from time import sleep
-import random
-c3 = MyConsumer(topics=["T-1", "T-3"], broker=base_url)
+#  Regitering to partition 0
+c3 = MyConsumer(topics=["T-1", "T-3"], broker=base_url, partition_ids = [0, None])
 
 while True:
     print(c3.get_next("T-1"))

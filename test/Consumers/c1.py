@@ -1,6 +1,6 @@
 from time import sleep
 import random
-from ...myqueue import MyConsumer
+from ...ServiceConsumers import MyConsumer
 HOST = "127.0.0.1"
 PORT = 5000
 base_url = f"http://{HOST}:{PORT}"
