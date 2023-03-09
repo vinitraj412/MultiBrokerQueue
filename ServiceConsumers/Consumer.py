@@ -22,6 +22,8 @@ class MyConsumer:
             "topic_name": topic_name,
             "consumer_id": self.topics_to_consumer_ids[topic_name],
         }
+        if self.partition_ids[topic_name] is not None:
+            data["partition_id"] = self.partition_ids[topic_name]
         try:
             r = requests.get(send_url, json=data)
             r.raise_for_status()

@@ -68,7 +68,7 @@ class MyProducer:
 if __name__ == "__main__":
     try:
         topics = ["topic1", "topic2"]
-        url = "http://localhost:5000"
+        url = "http://10.147.197.95:8081"
         my_producer = MyProducer(topics=topics, broker=url)
         my_producer.add_topic("topic3")
 

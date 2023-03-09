@@ -13,7 +13,7 @@ def test(HOST, PORT):
     print("Testing the endpoint register producer (new topic)")
     url = base_url + "/producer/register"
     data = {
-        "topic_name": "topic_1"
+        "topic_name": "topic_8"
     }
     producer_id = None
     try:
@@ -33,12 +33,12 @@ def test(HOST, PORT):
     print("Testing production to general partition (randomized)")
     
     url = base_url + "/producer/produce"
-    print(f"Pushing {num_of_messages} messages on Topic topic_1")
+    print(f"Pushing {num_of_messages} messages on Topic topic_8")
     
     try:
         for i in range(num_of_messages):
             data = {
-                "topic_name": "topic_1",
+                "topic_name": "topic_8",
                 "producer_id": producer_id,
                 "message": f"LOG MESSAGE {i + 1}"
             }
@@ -56,10 +56,10 @@ def test(HOST, PORT):
     pass
 
     print("Testing list partitions for a topic")
-    url = base_url + "/topics/list_partitions"
+    url = base_url + "/topics/partitions"
     
     data = {
-        "topic_name": "topic_1"
+        "topic_name": "topic_8"
     }
     
     r = requests.get(url, json=data)
@@ -68,11 +68,12 @@ def test(HOST, PORT):
     print(response)
     partitions = response['partitions']
     
+    url = base_url + "/producer/produce"
     print("Testing production to specific partition")
     for i in range(num_of_messages):
         partition_id = random.choice(partitions)
         data = {
-            "topic_name": "topic_1",
+            "topic_name": "topic_8",
             "producer_id": producer_id,
             "partition_id": partition_id,	
             "message": f"LOG MESSAGE {i + num_of_messages + 1}",
@@ -84,12 +85,13 @@ def test(HOST, PORT):
         print("Response")
         print(response)
 
-
+    # 20 messages -- 
+    
     print()
     print("Testing the endpoint register consumer (topic level)")
     url = base_url + "/consumer/register"
     data = {
-        "topic_name": "topic_1"
+        "topic_name": "topic_8"
     }
 
     consumer_id = None
@@ -113,15 +115,15 @@ def test(HOST, PORT):
 
     try:
         data = {
-            "topic_name": "topic_1",
+            "topic_name": "topic_8",
             "consumer_id": consumer_id,
         }
         print(f"request = {data}")
-        for i in range(num_of_messages):
+        for i in range(num_of_messages * 2):
             print()
 
             url = url = base_url + "/size"
-            print(f"Size of topic_1 for given consumer")
+            print(f"Size of topic_8 for given consumer")
             r = requests.get(url, json=data)
             response = r.json()
             print("Response")
@@ -148,7 +150,7 @@ def test(HOST, PORT):
     url = base_url + "/consumer/register"
     partition_id = random.choice(partitions)
     data = {
-        "topic_name": "topic_1",
+        "topic_name": "topic_8",
         "partition_id": partition_id
     }
 
@@ -173,15 +175,16 @@ def test(HOST, PORT):
 
     try:
         data = {
-            "topic_name": "topic_1",
+            "topic_name": "topic_8",
             "consumer_id": consumer_id,
+            "partition_id": partition_id
         }
         print(f"request = {data}")
         while True:
             print()
 
             url = url = base_url + "/size"
-            print(f"Size of topic_1 for given consumer")
+            print(f"Size of topic_8 for given consumer")
             r = requests.get(url, json=data)
             response = r.json()
             print("Response")

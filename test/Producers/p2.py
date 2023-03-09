@@ -2,8 +2,8 @@ from ...ServiceConsumers import MyProducer
 import random
 import time
 
-HOST = "127.0.0.1"
-PORT = 5000
+HOST = "10.147.197.95"
+PORT = 8081
 base_url = f"http://{HOST}:{PORT}"
 
 p2 = MyProducer(topics=["T-1","T-3"],broker=base_url)

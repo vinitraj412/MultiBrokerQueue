@@ -1,3 +1,5 @@
+# IP="127.1"
+# PORT=8081
 python -m  Producers.p1 > log_p1&
 python -m  Producers.p2 > log_p2& 
 python -m  Producers.p3 > log_p3& 

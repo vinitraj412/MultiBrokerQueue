@@ -1,5 +1,5 @@
-1. Single producer, single consumer, unknown partition.
-2. Single producer, single consumer, known partition.
+1. Single producer, single consumer, unknown partition : Passed
+2. Single producer, single consumer, known partition: Passed
 3. Prev assignment compatibility tests (parallel testing): mix of known and unknown partitions.
 
 4. Broker down + resurrection

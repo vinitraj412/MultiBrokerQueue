@@ -2,8 +2,8 @@ from ...ServiceConsumers import MyConsumer
 from time import sleep
 import random
 
-HOST = "127.0.0.1"
-PORT = 5000
+HOST = "10.147.197.95"
+PORT = 8081
 base_url = f"http://{HOST}:{PORT}"
 #  Regitering to partition 0
 c3 = MyConsumer(topics=["T-1", "T-3"], broker=base_url, partition_ids = [0, None])
