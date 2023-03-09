@@ -11,6 +11,48 @@ class MyConsumer:
         for i, topic_name in enumerate(topics):
             self.subscribe_to_topic(topic_name, partition_ids[i])
 
+    def list_topics(self, topic_name):
+        send_url = self.base_url + '/topics'
+        data = {
+            "topic_name": topic_name
+        }
+        try:
+            r = requests.get(send_url, json=data)
+            r.raise_for_status()
+            response = r.json()
+            if response["status"] == "Success":
+                print("Sent successfully")
+            else:
+                print(f"Failed, {response['message']}")
+            return response
+        except requests.exceptions.HTTPError as errh:
+            print("Http Error:", errh)
+            return {"status": "Failed", "message": "Http Error"}
+        except requests.exceptions.ConnectionError as errc:
+            print("Error Connecting:", errc)
+            return {"status": "Failed", "message": "Error Connecting"}
+
+    def list_partitions(self, topic_name):
+        send_url = self.base_url + '/topics/partitions'
+        data = {
+            "topic_name": topic_name
+        }
+        try:
+            r = requests.get(send_url, json=data)
+            r.raise_for_status()
+            response = r.json()
+            if response["status"] == "Success":
+                print("Sent successfully")
+            else:
+                print(f"Failed, {response['message']}")
+            return response
+        except requests.exceptions.HTTPError as errh:
+            print("Http Error:", errh)
+            return {"status": "Failed", "message": "Http Error"}
+        except requests.exceptions.ConnectionError as errc:
+            print("Error Connecting:", errc)
+            return {"status": "Failed", "message": "Error Connecting"}
+
     def get_next(self, topic_name):
 
         if topic_name not in self.topics_to_consumer_ids:
@@ -22,8 +64,9 @@ class MyConsumer:
             "topic_name": topic_name,
             "consumer_id": self.topics_to_consumer_ids[topic_name],
         }
-        if self.partition_ids[topic_name] is not None:
-            data["partition_id"] = self.partition_ids[topic_name]
+        if self.partition_ids[self.topics.index(topic_name)] is not None:
+            data["partition_id"] = self.partition_ids[self.topics.index(topic_name)]
+
         try:
             r = requests.get(send_url, json=data)
             r.raise_for_status()
@@ -34,26 +77,6 @@ class MyConsumer:
             else:
                 print(f"Failed, {response['message']}")
 
-            return response
-        except requests.exceptions.HTTPError as errh:
-            print("Http Error:", errh)
-            return {"status": "Failed", "message": "Http Error"}
-        except requests.exceptions.ConnectionError as errc:
-            print("Error Connecting:", errc)
-            return {"status": "Failed", "message": "Error Connecting"}
-
-    def get_topics(self):
-        topics_url = self.base_url + "/topics"
-        data = {"topic_name": topic_name}
-
-        try:
-            r = requests.get(topics_url, json=data)
-            r.raise_for_status()
-            response = r.json()
-            if response["status"] == "Success":
-                print("Active Topics : ")
-                for topic_name in response["topics"]:
-                    print(topic_name)
             return response
         except requests.exceptions.HTTPError as errh:
             print("Http Error:", errh)

@@ -1,4 +1,4 @@
-from ...ServiceConsumers import MyProducer
+from ServiceConsumers import MyProducer
 import random
 import time
 
@@ -8,7 +8,7 @@ base_url = f"http://{HOST}:{PORT}"
 
 p4 = MyProducer(topics=["T-2"], broker=base_url)
 
-with open("test_asgn1/producer_4.txt", "r") as f:
+with open("test/test_asgn1/producer_4.txt", "r") as f:
     for line in f:
         line=line.strip()
         topic = line.split('\t')[-1]

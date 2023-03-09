@@ -7,14 +7,52 @@ class MyProducer:
 
         self.topics = topics
         self.topics_producer_id_map = {}
+
         for topic_name in self.topics:
-
             self.add_topic(topic_name)
-            # r = requests.post(register_url, json = data)
+    
+    def list_topics(self, topic_name):
+        send_url = self.base_url + '/topics'
+        data = {
+            "topic_name": topic_name
+        }
+        try:
+            r = requests.get(send_url, json=data)
+            r.raise_for_status()
+            response = r.json()
+            if response["status"] == "Success":
+                print("Sent successfully")
+            else:
+                print(f"Failed, {response['message']}")
+            return response
+        except requests.exceptions.HTTPError as errh:
+            print("Http Error:", errh)
+            return {"status": "Failed", "message": "Http Error"}
+        except requests.exceptions.ConnectionError as errc:
+            print("Error Connecting:", errc)
+            return {"status": "Failed", "message": "Error Connecting"}
 
-            # register producer id for data
-            # print(r.json())
-
+    def list_partitions(self, topic_name):
+        send_url = self.base_url + '/topics/partitions'
+        data = {
+            "topic_name": topic_name
+        }
+        try:
+            r = requests.get(send_url, json=data)
+            r.raise_for_status()
+            response = r.json()
+            if response["status"] == "Success":
+                print("Sent successfully")
+            else:
+                print(f"Failed, {response['message']}")
+            return response
+        except requests.exceptions.HTTPError as errh:
+            print("Http Error:", errh)
+            return {"status": "Failed", "message": "Http Error"}
+        except requests.exceptions.ConnectionError as errc:
+            print("Error Connecting:", errc)
+            return {"status": "Failed", "message": "Error Connecting"}
+        
     def send(self, topic_name, message, partition_id = None):
         if topic_name not in self.topics_producer_id_map.keys():
             print(f"Please register to {topic_name}")
