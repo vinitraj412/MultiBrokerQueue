@@ -7,24 +7,26 @@ class MyProducer:
 
         self.topics = topics
         self.topics_producer_id_map = {}
-        for topic in self.topics:
+        for topic_name in self.topics:
 
-            self.add_topic(topic)
+            self.add_topic(topic_name)
             # r = requests.post(register_url, json = data)
 
             # register producer id for data
             # print(r.json())
 
-    def send(self, topic_name, message):
+    def send(self, topic_name, message, partition_id = None):
         if topic_name not in self.topics_producer_id_map.keys():
             print(f"Please register to {topic_name}")
             return
         send_url = self.base_url + "/producer/produce"
         data = {
-            "topic": topic_name,
+            "topic_name": topic_name,
             "producer_id": self.topics_producer_id_map[topic_name],
             "message": message
         }
+        if partition_id is not None:
+            data["partition_id"] = partition_id
         # TODO : add an infinite loop until success
         try:
             r = requests.post(send_url, json=data)
@@ -46,7 +48,7 @@ class MyProducer:
         if topic_name in self.topics_producer_id_map.keys():
             return
         register_url = self.base_url + "/producer/register"
-        data = {"topic": topic_name}
+        data = {"topic_name": topic_name}
         try:
             r = requests.post(register_url, json=data)
             r.raise_for_status()

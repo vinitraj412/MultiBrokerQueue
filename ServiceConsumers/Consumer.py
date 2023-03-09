@@ -2,13 +2,14 @@ import requests
 # When broker is down: block hoke baith jao
 
 class MyConsumer:
-    def __init__(self, topics, broker):
+    def __init__(self, topics, broker, partition_ids):
         self.topics = topics
         self.base_url = broker
+        self.partition_ids = partition_ids
         self.topics_to_consumer_ids = {}
 
-        for topic_name in topics:
-            self.subscribe_to_topic(topic_name)
+        for i, topic_name in enumerate(topics):
+            self.subscribe_to_topic(topic_name, partition_ids[i])
 
     def get_next(self, topic_name):
 
@@ -18,7 +19,7 @@ class MyConsumer:
 
         send_url = self.base_url + "/consumer/consume"
         data = {
-            "topic": topic_name,
+            "topic_name": topic_name,
             "consumer_id": self.topics_to_consumer_ids[topic_name],
         }
         try:
@@ -41,7 +42,7 @@ class MyConsumer:
 
     def get_topics(self):
         topics_url = self.base_url + "/topics"
-        data = {"topic": topic_name}
+        data = {"topic_name": topic_name}
 
         try:
             r = requests.get(topics_url, json=data)
@@ -59,12 +60,12 @@ class MyConsumer:
             print("Error Connecting:", errc)
             return {"status": "Failed", "message": "Error Connecting"}
 
-    def subscribe_to_topic(self, topic_name):
+    def subscribe_to_topic(self, topic_name, partition_id=None):
         if topic_name in self.topics_to_consumer_ids.keys():
             print(f"Consumer already registered to {topic_name}")
             return
         register_url = self.base_url + "/consumer/register"
-        data = {"topic": topic_name}
+        data = {"topic_name": topic_name, "partition_id": partition_id}
         try:
             r = requests.post(register_url, json=data)
             r.raise_for_status()
