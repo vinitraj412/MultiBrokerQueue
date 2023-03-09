@@ -53,8 +53,8 @@ class WriteManager:
         partition_ids = []
         for broker_id in broker_ids:
             partition_id = PartitionMetadata.createPartition(topic_name, broker_id)
-            partition_ids.append(partition_id)
-
+            if (partition_id != -1):
+                partition_ids.append(partition_id)
         return partition_ids
 
     @staticmethod
@@ -95,6 +95,8 @@ class WriteManager:
         # check for existence of topic_name and partition_id
         # TODO: complete this
         producer_id = str(uuid.uuid4())
+        if PartitionMetadata.query.filter_by(topic_name=topic_name).count() == 0:
+            WriteManager.create_topic(topic_name)
         ProducerMetadata.registerProducer(producer_id, topic_name)
         return producer_id
     

@@ -27,7 +27,7 @@ class LoggingQueue:
                 print("Http Error:", errh)
             except requests.exceptions.ConnectionError as errc:
                 print("Error Connecting:", errc)
-            sleep(0.05)
+            sleep(10)
 
     def create_topic(self, topic_name: str, partition_id) -> None:
         if not TopicName.CheckTopic(topic_name=topic_name, partition_id=partition_id):

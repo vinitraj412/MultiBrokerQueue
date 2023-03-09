@@ -56,7 +56,7 @@ class BrokerMetadata(db.Model):
 
     @staticmethod
     def isActiveBroker(broker) -> bool:
-        return (datetime.utcnow() - broker.last_beat_timestamp).total_seconds() < 0.3
+        return (datetime.utcnow() - broker.last_beat_timestamp).total_seconds() < 60
 
     @staticmethod
     def getBrokerEndpoint(broker_id: int) -> str:
@@ -91,6 +91,11 @@ class PartitionMetadata(db.Model):
     broker_id = db.Column(db.Integer(), db.ForeignKey('BrokerMetadata.broker_id'))
     size = db.Column(db.Integer(), default=0)
 
+    __table_args__ = (
+        # this can be db.PrimaryKeyConstraint if you want it to be a primary key
+        db.UniqueConstraint('partition_id', 'topic_name'),
+      )
+
     def __init__(self, topic_name, broker_id):
         self.topic_name = topic_name
         self.broker_id = broker_id
@@ -105,8 +110,12 @@ class PartitionMetadata(db.Model):
     @staticmethod
     def createPartition(topic_name, broker_id):
         entry = PartitionMetadata(topic_name, broker_id)
-        db.session.add(entry)
-        db.session.commit()
+        try:
+            db.session.add(entry)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            return -1
         partition_id = entry.partition_id
         return partition_id
 
@@ -211,7 +220,7 @@ class PartitionMetadata(db.Model):
 class ConsumerMetadata(db.Model):
     __tablename__ = 'ConsumerMetadata'
     consumer_id = db.Column(db.String(), primary_key=True)
-    partition_metadata = db.Column(db.Integer())
+    partition_metadata = db.Column(db.Integer(), primary_key=True)
     offset = db.Column(db.Integer())  # will be
 
     def __init__(self, consumer, topic_name, partition_id, offset):

@@ -21,8 +21,12 @@ class TopicName(db.Model):
     @staticmethod
     def CreateTopic(topic_name, partition_id):
         topic = TopicName(topic_name, partition_id)
-        db.session.add(topic)
-        db.session.commit()
+        try:
+            db.session.add(topic)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            return -1
 
     @staticmethod
     def CheckTopic(topic_name, partition_id):

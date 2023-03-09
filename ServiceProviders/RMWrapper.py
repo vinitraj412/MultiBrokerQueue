@@ -86,8 +86,9 @@ def size():
 	dict = request.get_json()
 	topic = (dict['topic_name'])
 	consumer_id = str(dict['consumer_id'])
+	partition_id = dict.get('partition_id', None)
 
-	status = ReadManager.size(consumer_id=consumer_id, topic_name=topic)
+	status = ReadManager.size(consumer_id=consumer_id, topic_name=topic, partition_id=partition_id)
 	response = {}
 
 	# using status as a flag to check the size returned
