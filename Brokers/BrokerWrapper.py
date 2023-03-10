@@ -1,7 +1,8 @@
 from flask import Flask, request
 from Broker import LoggingQueue
 from flask_migrate import Migrate
-from BrokerModels import db
+from BrokerModels import db, ID
+
 from concurrent.futures import ThreadPoolExecutor
 import socket
 import uuid
@@ -12,6 +13,7 @@ import requests
 from threading import Thread
 import os
 app = Flask(__name__)
+
 DATABASE_CONFIG = {
     'driver': 'postgresql',
     'host': os.getenv('DB_NAME'),
@@ -165,24 +167,26 @@ if __name__ == '__main__':
     # global broker
     with app.app_context():
         db.create_all()  # <--- create db object.
+        broker_id = ID.getID()
+        if (broker_id == -1):
+            hostname = socket.gethostname()
+            ip_address = socket.gethostbyname(hostname)
+            print(f"IP Address: {ip_address}, Port: {args.port}")
 
-    hostname = socket.gethostname()
-    ip_address = socket.gethostbyname(hostname)
-    print(f"IP Address: {ip_address}, Port: {args.port}")
-
-    # keep on trying to connect to manager
-    while True:
-        response = register(args.managerIP, args.managerPort, args.port)
-        # import ipdb
-        # ipdb.set_trace()
-        if response != -1:
-            broker_id = response
-            break
-        sleep(randint(1, 3)/100)
+            # keep on trying to connect to manager
+            while True:
+                response = register(args.managerIP, args.managerPort, args.port)
+                # import ipdb
+                # ipdb.set_trace()
+                if response != -1:
+                    broker_id = response
+                    ID.createID(broker_id)
+                    break
+                sleep(randint(1, 3)/100)
 
     # with ThreadPoolExecutor(max_workers=1) as executor:
     #     executor.submit(broker.heartbeat, args.managerIP, args.managerPort, broker_id)
-    executor = Thread(target=broker.heartbeat,args=(args.managerIP, args.managerPort, broker_id))
+    executor = Thread(target=broker.heartbeat,args=(args.managerIP, args.managerPort, broker_id,args.port))
     executor.daemon = True
     executor.start()
     app.run(host='0.0.0.0',port=args.port)

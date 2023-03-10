@@ -13,7 +13,7 @@ class BrokerMetadata(db.Model):
     __tablename__ = 'BrokerMetadata'
 
     broker_id = db.Column(db.Integer(), primary_key=True)
-    endpoint = db.Column(db.String(), unique=True)
+    endpoint = db.Column(db.String())
     last_beat_timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.Boolean, default=True)
 
@@ -27,6 +27,12 @@ class BrokerMetadata(db.Model):
     def updateTimeStamp(broker_id):
         broker = BrokerMetadata.query.filter_by(broker_id=broker_id).first()
         broker.last_beat_timestamp = datetime.utcnow()
+        db.session.commit()
+
+    @staticmethod
+    def updateIP(broker_id, endpoint):
+        broker = BrokerMetadata.query.filter_by(broker_id=broker_id).first()
+        broker.endpoint = endpoint
         db.session.commit()
 
     @staticmethod
@@ -56,7 +62,7 @@ class BrokerMetadata(db.Model):
 
     @staticmethod
     def isActiveBroker(broker) -> bool:
-        return (datetime.utcnow() - broker.last_beat_timestamp).total_seconds() < 60
+        return (datetime.utcnow() - broker.last_beat_timestamp).total_seconds() < 0.3
 
     @staticmethod
     def getBrokerEndpoint(broker_id: int) -> str:

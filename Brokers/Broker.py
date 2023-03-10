@@ -14,10 +14,10 @@ class LoggingQueue:
     def __init__(self):
         pass
 
-    def heartbeat(self, ip: str, port: int, broker_id) -> None:
-        data = {"broker_id": broker_id}
+    def heartbeat(self, ip: str, port: int, broker_id, self_port) -> None:
+        data = {"broker_id": broker_id, "port": self_port}
         send_url = f"http://{ip}:{port}/broker/receive_beat"
-        
+
         while True:
             try:
                 r = requests.post(send_url, json=data)
@@ -27,7 +27,7 @@ class LoggingQueue:
                 print("Http Error:", errh)
             except requests.exceptions.ConnectionError as errc:
                 print("Error Connecting:", errc)
-            sleep(10)
+            sleep(0.05)
 
     def create_topic(self, topic_name: str, partition_id) -> None:
         if not TopicName.CheckTopic(topic_name=topic_name, partition_id=partition_id):
@@ -36,7 +36,8 @@ class LoggingQueue:
             print(f"Topic {topic_name} with partition {partition_id} created.")
             return 1
         else:
-            print(f"Topic {topic_name} with partition {partition_id} already exists.")
+            print(
+                f"Topic {topic_name} with partition {partition_id} already exists.")
             return -1
 
     def list_topics(self) -> List[Tuple[str, str]]:
@@ -52,22 +53,26 @@ class LoggingQueue:
         status = TopicMessage.addMessage(
             topic_name=topic, partition_id=partition_id, message=message)
         if status == 1:
-            print(f"Message '{message}' added to topic {topic} with partition {partition_id}.")
+            print(
+                f"Message '{message}' added to topic {topic} with partition {partition_id}.")
             return 1
         else:
-            print(f"Message '{message}' could not be added to topic {topic} with partition {partition_id}.")
+            print(
+                f"Message '{message}' could not be added to topic {topic} with partition {partition_id}.")
             return -1
 
     def dequeue(self, topic_name: str, partition_id: int, offset: int, *args, **kwargs) -> str:
 
         if not TopicName.CheckTopic(topic_name=topic_name, partition_id=partition_id):
-            print(f"Topic {topic_name} with partition {partition_id} does not exist.")
+            print(
+                f"Topic {topic_name} with partition {partition_id} does not exist.")
             return -1
 
-        message = TopicMessage.retrieveMessage(topic_name=topic_name, partition_id=partition_id, 
+        message = TopicMessage.retrieveMessage(topic_name=topic_name, partition_id=partition_id,
                                                offset=offset)
         if (isinstance(message, str)):
-            print(f"Message '{message}' from topic {topic_name}, partition {partition_id}.")
+            print(
+                f"Message '{message}' from topic {topic_name}, partition {partition_id}.")
             return message
         elif message == -1:
             print(f"No message in queue!!!")
@@ -75,7 +80,8 @@ class LoggingQueue:
 
     def size(self, topic_name: str, partition_id: str, offset) -> int:
         if not TopicName.CheckTopic(topic_name=topic_name, partition_id=partition_id):
-            print(f"Topic {topic_name} with partition {partition_id} does not exist.")
+            print(
+                f"Topic {topic_name} with partition {partition_id} does not exist.")
             return -1
         return TopicMessage.getSizeforTopic(topic_name=topic_name, partition_id=partition_id, offset=offset)
 

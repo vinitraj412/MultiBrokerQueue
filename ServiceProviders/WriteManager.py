@@ -23,7 +23,7 @@ class WriteManager:
     #     ConsumerMetadata.updateConsumerPartition(consumer_id=consumer_id,new_partition_metadata=new_part_metadata)
 
     @staticmethod
-    def receive_heartbeat(broker_id):
+    def receive_heartbeat(broker_id, ip, port):
         # check if that broker was inactive
         if not BrokerMetadata.checkBroker(broker_id):
             # update the partition metadata for that broker
@@ -33,7 +33,8 @@ class WriteManager:
                 if not PartitionMetadata.checkPartition(topic, broker_id):
                     # create a new partition
                     PartitionMetadata.createPartition(topic, broker_id)
-
+        endpoint = "http://{}:{}".format(ip,port)
+        BrokerMetadata.updateIP(broker_id,endpoint)
         BrokerMetadata.updateTimeStamp(broker_id)
 
     @staticmethod
@@ -165,13 +166,17 @@ class WriteManager:
         if partition_id is None:
             partition_id = WriteManager.round_robin_partition(topic_name, producer_id)
         
-        broker_id = PartitionMetadata.getBrokerID(topic_name, partition_id)
+        try:
+            broker_id = PartitionMetadata.getBrokerID(topic_name, partition_id)
+        except:
+            return {"status": "Failure", "message": "Partition not found"}
         broker_endpoint = BrokerMetadata.getBrokerEndpoint(broker_id)
         broker_endpoint = broker_endpoint + "/producer/produce"
         response = WriteManager.send_request( broker_endpoint, topic_name, partition_id, message)
         if response['status']=='Success':
             PartitionMetadata.increaseSize(topic_name=topic_name,partition_id=partition_id)
         return response
+    
         # return WriteManager.send_request(broker_endpoint, topic_name, partition_id, message)
   
     # list_topics()

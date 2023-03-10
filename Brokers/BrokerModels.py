@@ -2,6 +2,28 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+class ID(db.Model):
+    broker_id = db.Column(db.Integer, primary_key=True)
+
+    def __init__(self,broker_id):
+        self.broker_id = broker_id
+
+    @staticmethod
+    def createID(broker_id):
+        id = ID(broker_id)
+        try:
+            db.session.add(id)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            return -1
+    
+    @staticmethod
+    def getID():
+        if (ID.query.first() == None):
+            return -1
+        return ID.query.first().broker_id
+
 class TopicName(db.Model):
     __tablename__ = 'TopicName'
     topic_name = db.Column(db.String(), primary_key=True)

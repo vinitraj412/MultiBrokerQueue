@@ -107,10 +107,13 @@ def register_consumer():
 @app.route("/broker/receive_beat", methods=["POST"])
 def receive_beat():
 	req = request.get_json()
+	dict = request.get_json()
+	ip = request.environ['REMOTE_ADDR']
+	port = dict['port']
 	# print("Heartbeat from : ", end=" ")
 	# print(req)
 	broker_id = req["broker_id"]
-	WriteManager.receive_heartbeat(broker_id)
+	WriteManager.receive_heartbeat(broker_id,ip,port)
 	return {}
 
 @app.route("/broker/register", methods=["POST"])
