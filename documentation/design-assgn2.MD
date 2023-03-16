@@ -1,13 +1,14 @@
 # STRUCTURE OF THE APPLICATION(File Structure)
 
 ## Load Balancer 
-Designed with the help of nginx(used primarily for load balancing), the load balancer is responsible for distributing the traffic between the two servers. It is also responsible for the health check of the servers. The load balancer is configured to check the health of the servers every 5 seconds. If the server is down, the load balancer will not send any traffic to that server. The load balancer is also configured to send 50% of the traffic to server 1 and 50% of the traffic to server 2. The load balancer is configured to listen on port 80. 
+Designed with the help of nginx(used primarily for load balancing), the load balancer is responsible for distributing the traffic between the two servers. It is also responsible for the health check of the servers. The load balancer is configured to check the health of the servers every 5 seconds. If the server is down, the load balancer will not send any traffic to that server. The load balancer is also configured to send 50% of the traffic to server 1 and 50% of the traffic to server 2 using a round robin algorithm. In case a read manager is down, it sends the request to the other available read manager.
+
 All the requests are sent to the load balancer and the load balancer distributes the traffic to the servers.
 
 ## Managers
-There are 3 types of managers in our application :
-- Write Manager 
-- 2 Read Managers 
+There are 2 types of managers in our application :
+- Write Manager (1 nos.)
+- Read Managers (2 nos.)
 
 Responsibilities of the write manager: 
 the WriteManager is a class responsible for managing writes to the distributed messaging system. The responsibilities of the WriteManager include creating a new topic, registering a producer, registering a consumer, registering a broker, enqueueing a message, incrementing an offset, and receiving a heartbeat from a broker.
@@ -73,7 +74,7 @@ The `PartitionMetadata` table stores data about the partitioning the topics in s
 From the original design which consisted of four models, the current design choice has reduced the number of models to two, namely:
 
 - Topic_Names
-    - contains: topic_name, partition_id, {supports CreateTopic, ListTopic, CheckTopic}
+	- contains: topic_name, partition_id, {supports CreateTopic, ListTopic, CheckTopic}
 
--TopicMessages
-	contains: message_id, topic_name, producer_id, message {supports enqueue, dequeue, size}
+- TopicMessages
+	- contains: message_id, topic_name, producer_id, message {supports enqueue, dequeue, size}
