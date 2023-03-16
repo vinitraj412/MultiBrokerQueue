@@ -17,6 +17,23 @@ tests conducted in the file :
 (NOTE : This file also tests the single partition production)
 tests conducted in the file :
 
+- **Test the endpoint create Topic**: To test if a new topic can be created on the server.
+
+- **Test the endpoint create Topic (duplicate topic)**: To test if the server responds correctly when a duplicate topic is created.
+
+- **Test the endpoint get topics**: To test if the server responds correctly when a request to get all topics is made.
+
+- **Test the endpoint register consumer**: To test if the server responds correctly when a consumer is registered for an existing topic.
+
+- **Test the endpoint register consumer (invalid topic name)**: To test if the server responds correctly when a consumer is registered for an invalid topic name.
+
+- **Test the endpoint register producer (existing topic)**: To test if the server responds correctly when a producer is registered for an existing topic.
+
+- **Test the endpoint register producer (new topic)**: To test if the server responds correctly when a producer is registered for a new topic.
+
+- **Calling the endpoint get Topics**: To test if the server responds correctly when a request to get all topics is made.
+
+- **Pushing messages on a Topic**: To test if messages can be pushed on a topic on the server.
 
 
 `single_prod_single_con_single_partition.py` \
