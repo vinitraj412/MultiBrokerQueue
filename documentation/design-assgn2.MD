@@ -47,33 +47,33 @@ There are four tables in the database, namely:
 `BrokerMetadata` , `ConsumerMetadata`, `ProducerMetadata`, and `PartitionMetadata`
 
 The `BrokerMetadata` table stores information about the brokers in the system and contains the following columns:
-`broker_id` - a unique identifier for the broker
-`endpoint` - the endpoint of the broker (represents the IP address and port of the broker)
-`last_heartbeat` - the last time the broker sent a heartbeat to the manager
-`status` - stores whether the broker is active or not 
+- `broker_id` - a unique identifier for the broker
+- `endpoint` - the endpoint of the broker (represents the IP address and port of the broker)
+- `last_heartbeat` - the last time the broker sent a heartbeat to the manager
+- `status` - stores whether the broker is active or not 
 
 The `ConsumerMetadata` table stores information about the consumers in the system and it contains the following columns:
-`consumer_id` - a unique identifier for the consumer
-`topic_name` - the topic the consumer is subscribed to
-`partition_id` - the partition the consumer is subscribed to (is assigned in a round-robin fashion if the consumer is subscribed to the topic as a whole and not to a specific partition)
-`offset` - the offset of the consumer
+- `consumer_id` - a unique identifier for the consumer
+- `topic_name` - the topic the consumer is subscribed to
+- `partition_id` - the partition the consumer is subscribed to (is assigned in a round-robin fashion if the consumer is subscribed to the topic as a whole and not to a specific partition)
+- `offset` - the offset of the consumer
 
 The `ProducerMetadata` table stores information about the Producers and it contains the following columns:
-`producer_id` - a unique identifier for the producer
-`topic_name` - the topic the producer is producing to
+- `producer_id` - a unique identifier for the producer
+- `topic_name` - the topic the producer is producing to
 
 The `PartitionMetadata` table stores data about the partitioning the topics in system and it contains the following columns:
-`id` - a unique identifier for the partition
-`topic_name` - the name of the topic
-`partition_id` - the partition ID of the topic (0, 1, 2, ...)
-`broker_id` - the broker ID of the broker that is hosting the partition
-`size` - the size of the partition  
+- `id` - a unique identifier for the partition
+- `topic_name` - the name of the topic
+- `partition_id` - the partition ID of the topic (0, 1, 2, ...)
+- `broker_id` - the broker ID of the broker that is hosting the partition
+- `size` - the size of the partition  
 
 ## Broker 
 From the original design which consisted of four models, the current design choice has reduced the number of models to two, namely:
 
--Topic_Names
-    contains: topic_name, partition_id, {supports CreateTopic, ListTopic, CheckTopic}
+- Topic_Names
+    - contains: topic_name, partition_id, {supports CreateTopic, ListTopic, CheckTopic}
 
--TopicMessages
-	contains: message_id, topic_name, producer_id, message {supports enqueue, dequeue, size}
+- TopicMessages
+    - contains: message_id, topic_name, producer_id, message {supports enqueue, dequeue, size}
