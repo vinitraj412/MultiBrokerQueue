@@ -75,5 +75,5 @@ From the original design which consisted of four models, the current design choi
 - Topic_Names
     - contains: topic_name, partition_id, {supports CreateTopic, ListTopic, CheckTopic}
 
-- TopicMessages
-    - contains: message_id, topic_name, producer_id, message {supports enqueue, dequeue, size}
+-TopicMessages
+	contains: message_id, topic_name, producer_id, message {supports enqueue, dequeue, size}
