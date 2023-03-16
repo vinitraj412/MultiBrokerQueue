@@ -71,10 +71,25 @@ The `PartitionMetadata` table stores data about the partitioning the topics in s
 - `size` - the size of the partition  
 
 ## Broker 
-From the original design which consisted of four models, the current design choice has reduced the number of models to two, namely:
+From the original design which consisted of four models, the current design choice has reduced the number of models to three, namely:
 
-- Topic_Names
-	- contains: topic_name, partition_id, {supports CreateTopic, ListTopic, CheckTopic}
+- `ID` : This table is used to store the ID of the broker that is used to route messages between producers and consumers. Columns :
+	- `broker_id`: An integer value that serves as the primary key for this table.
 
-- TopicMessages
-	- contains: message_id, topic_name, producer_id, message {supports enqueue, dequeue, size}
+<br>
+
+- `TopicName` : This table is used to store the list of topics and their corresponding partitions. Columns:
+	- `topic_name`: A string value that serves as part of the composite primary key for this table.
+	- `partition_id` : An integer value that serves as the other part of the composite primary key for this table. 
+
+	The `topic_name` and `partition_id` columns together form a composite primary key, which ensures that each combination of topic and partition is unique.
+
+<br>
+
+- `TopicMessage` : This table is used to store the messages sent by producers for a given topic and partition. Columns:
+	- `id`: An integer value that serves as the primary key for this table and ensures that each message has a unique identifier. 
+	- `topic_name`: A string value that serves as part of the composite foreign key for this table, referencing the `topic_name` column of the `TopicName` table.
+	- `partition_id` : An integer value that serves as the other part of the composite foreign key for this table, referencing the `partition_id` column of the `TopicName` table.
+	- `message`: A string value that stores the message sent by the producer.
+
+	The `topic_name` and `partition_id` columns together form a composite foreign key that references the `TopicName` table, ensuring that each message is associated with a valid topic and partition combination.
