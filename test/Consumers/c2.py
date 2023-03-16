@@ -1,6 +1,6 @@
 from ServiceConsumers import MyConsumer
-HOST = "10.147.197.95"
-PORT = 8081
+HOST = "localhost"
+PORT = 8080
 base_url = f"http://{HOST}:{PORT}"
 from time import sleep
 import random

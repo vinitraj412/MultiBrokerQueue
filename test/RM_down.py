@@ -199,6 +199,9 @@ def test(HOST, PORT):
     except requests.exceptions.ConnectionError as errc:
         print("Error Connecting:", errc)
     
+    except Exception as e:
+        print(f"FAILED due to {e}")
+    
     print("Testing production to general partition (randomized)")
     
     print(f"Pushing {num_of_messages} messages on Topic topic_1")
@@ -305,7 +308,7 @@ def test(HOST, PORT):
 
 if __name__ == "__main__":
     # register broker: happens by default
-    HOST = "10.147.197.95"
-    PORT = 8081
+    HOST = "localhost"
+    PORT = 8080
     test(HOST, PORT)
     # Read Manager down

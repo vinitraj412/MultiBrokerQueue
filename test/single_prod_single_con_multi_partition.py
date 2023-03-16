@@ -293,6 +293,6 @@ def test(HOST, PORT):
     
     
 if __name__ == "__main__":
-    HOST = "10.147.197.95"
-    PORT = 8081
+    HOST = "localhost"
+    PORT = 8080
     test(HOST, PORT)

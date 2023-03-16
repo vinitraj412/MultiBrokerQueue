@@ -1,8 +1,8 @@
 from time import sleep
 import random
 from ServiceConsumers import MyConsumer
-HOST = "10.147.197.95"
-PORT = 8081
+HOST = "localhost"
+PORT = 8080
 base_url = f"http://{HOST}:{PORT}"
 sleep(5)
 c1 = MyConsumer(topics=["T-1", "T-2", "T-3"], broker=base_url, partition_ids=[None, None, None])
